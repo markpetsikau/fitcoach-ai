@@ -1510,18 +1510,25 @@ function launchSession(sessionId) {
   buildExoList();updateNavExoInfo();
   document.getElementById('btn-end-s').style.display='';
   switchTab('session');
+  setTimeout(()=>{ initCanvas(); resizeCanvas(); }, 100);
   setTimeout(()=>coachMsg(`C'est parti ! 💪 Séance **${ses.name}** — ${ses.exos.length} exercices, **${ses.duration} min** estimées. On commence par **${ses.exos[0].name}**. Active ta caméra !`),600);
 }
 
 // ════════════════════════════════════════
 // SESSION — CANVAS & SKELETON
 // ════════════════════════════════════════
-const canvas = document.getElementById('skeleton-canvas');
-const ctx = canvas.getContext('2d');
-function resizeCanvas() { const z = document.getElementById('cam-zone'); canvas.width = z.clientWidth; canvas.height = z.clientHeight; }
-window.addEventListener('resize', resizeCanvas); resizeCanvas();
+let canvas, ctx;
+function initCanvas() {
+  canvas = document.getElementById('skeleton-canvas');
+  if(!canvas) return;
+  ctx = canvas.getContext('2d');
+  resizeCanvas();
+}
+function resizeCanvas() { if(!canvas) return; const z = document.getElementById('cam-zone'); if(!z) return; canvas.width = z.clientWidth; canvas.height = z.clientHeight; }
+window.addEventListener('resize', resizeCanvas);
 
 function skeletonPts(phase) {
+  if(!canvas) return {};
   const W=canvas.width, H=canvas.height, cx=W*.5, sq=Math.sin(phase*Math.PI);
   return {
     nose:{x:cx,y:H*.11}, ls:{x:cx-W*.14,y:H*(.23+sq*.06)}, rs:{x:cx+W*.14,y:H*(.23+sq*.06)},
@@ -1534,6 +1541,7 @@ function skeletonPts(phase) {
 }
 
 function drawSkeleton(pts, errJoint) {
+  if(!ctx||!pts||Object.keys(pts).length===0) return;
   ctx.clearRect(0,0,canvas.width,canvas.height);
   const conns=[['ls','rs'],['ls','lh'],['rs','rh'],['lh','rh'],['ls','le'],['le','lw'],['rs','re'],['re','rw'],['lh','lk'],['lk','la'],['rh','rk'],['rk','ra'],['nose','ls'],['nose','rs']];
   ctx.lineWidth=2.5; ctx.lineCap='round';
@@ -1553,10 +1561,10 @@ function drawSkeleton(pts, errJoint) {
 
 function drawDemoSkeleton() {
   if(demoAnimId) cancelAnimationFrame(demoAnimId);
-  (function frame() {
+  (function demoFrame() {
     skeletonAnim+=.008; const ph=(Math.sin(skeletonAnim)+1)/2;
     drawSkeleton(skeletonPts(ph), errorState?'k':null);
-    updateAngles(ph); demoAnimId=requestAnimationFrame(frame);
+    updateAngles(ph); demoAnimId=requestAnimationFrame(demoFrame);
   })();
 }
 function drawSkeletonLoop(v) {
@@ -1576,6 +1584,7 @@ function updateAngles(ph) {
 }
 
 async function startCamera() {
+  initCanvas(); resizeCanvas();
   try {
     const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}});
     const v = document.createElement('video'); v.srcObject=stream; v.autoplay=true; v.playsInline=true;
@@ -1583,7 +1592,7 @@ async function startCamera() {
     document.getElementById('cam-zone').prepend(v); cameraActive=true; activateOverlay(); drawSkeletonLoop(v);
   } catch(e) { startDemo(); }
 }
-function startDemo() { demoMode=true; activateOverlay(); drawDemoSkeleton(); }
+function startDemo() { demoMode=true; initCanvas(); resizeCanvas(); activateOverlay(); drawDemoSkeleton(); }
 function activateOverlay() {
   document.getElementById('no-cam').style.display='none';
   document.getElementById('cam-overlay').style.display='flex';
