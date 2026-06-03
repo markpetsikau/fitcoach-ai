@@ -397,6 +397,50 @@ footer{border-top:1px solid var(--border);padding:32px 40px;display:flex;align-i
 .weight-row input{width:80px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:14px;font-weight:500;color:var(--text);outline:none;text-align:center;font-family:var(--mono)}
 .weight-row input:focus{border-color:var(--accent)}
 .end-actions{display:flex;gap:10px;margin-top:4px}
+/* ══ PLANNING ══ */
+.week-btn{background:var(--s2);border:1px solid var(--border);color:var(--t2);font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all .15s;font-family:var(--mono);white-space:nowrap}
+.week-btn:hover{border-color:var(--b2);color:var(--text)}
+.week-btn.active{background:var(--a3);border-color:rgba(200,245,90,.3);color:var(--accent)}
+.week-btn.current{border-color:rgba(200,245,90,.5)}
+.week-btn.done{opacity:.5}
+.seance-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px 24px;margin-bottom:12px;transition:border .2s;cursor:default}
+.seance-card:hover{border-color:var(--b2)}
+.seance-card.completed{border-color:rgba(200,245,90,.25);background:linear-gradient(135deg,rgba(200,245,90,.03),transparent)}
+.seance-card.today{border-color:rgba(200,245,90,.4);box-shadow:0 0 0 1px rgba(200,245,90,.1)}
+.seance-card.locked{opacity:.5;cursor:not-allowed}
+.seance-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.seance-day{font-size:11px;font-family:var(--mono);color:var(--t2);text-transform:uppercase;letter-spacing:.08em}
+.seance-name{font-family:var(--display);font-size:18px;font-weight:700;margin:2px 0 4px;letter-spacing:-.3px}
+.seance-meta{font-size:12px;color:var(--t2);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.seance-meta span{display:flex;align-items:center;gap:4px}
+.seance-status{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px}
+.status-done{background:rgba(200,245,90,.12);color:var(--accent);border:1px solid rgba(200,245,90,.25)}
+.status-today{background:rgba(74,158,255,.12);color:var(--blue);border:1px solid rgba(74,158,255,.25)}
+.status-next{background:var(--s2);color:var(--t2);border:1px solid var(--border)}
+.status-locked{background:var(--s2);color:var(--t3);border:1px solid var(--border)}
+.exo-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.exo-pill{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;font-size:12px}
+.exo-pill-name{font-weight:500;color:var(--text);margin-bottom:2px}
+.exo-pill-detail{font-size:11px;color:var(--t2);font-family:var(--mono)}
+.exo-pill-equip{font-size:10px;color:var(--blue);margin-top:3px}
+.exo-pill.done-pill{border-color:rgba(200,245,90,.2);background:rgba(200,245,90,.04)}
+.exo-pill.done-pill .exo-pill-name{color:var(--accent)}
+.seance-footer{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.seance-kcal{font-size:13px;color:var(--t2);display:flex;align-items:center;gap:6px}
+.seance-kcal strong{color:var(--text);font-family:var(--mono)}
+.btn-launch{background:var(--accent);color:#000;font-weight:700;font-size:13px;padding:9px 20px;border-radius:100px;border:none;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.btn-launch:hover{background:var(--a2);transform:translateY(-1px)}
+.btn-launch.done-btn{background:rgba(200,245,90,.12);color:var(--accent);border:1px solid rgba(200,245,90,.25);cursor:default;transform:none}
+.btn-launch.locked-btn{background:var(--s2);color:var(--t3);border:1px solid var(--border);cursor:not-allowed;transform:none}
+.overview-row{display:grid;grid-template-columns:80px 1fr;gap:12px;align-items:start;padding:10px 0;border-bottom:1px solid var(--border)}
+.overview-row:last-child{border-bottom:none}
+.overview-week{font-size:12px;font-family:var(--mono);color:var(--t2);padding-top:4px}
+.overview-pills{display:flex;gap:6px;flex-wrap:wrap}
+.ov-pill{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--t2);background:var(--s2)}
+.ov-pill.done{background:rgba(200,245,90,.08);border-color:rgba(200,245,90,.2);color:var(--accent)}
+.ov-pill.today{background:rgba(74,158,255,.1);border-color:rgba(74,158,255,.25);color:var(--blue)}
+.phase-badge{display:inline-flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;font-size:12px;margin-bottom:16px}
+.phase-dot{width:8px;height:8px;border-radius:50%}
 </style>
 </head>
 <body>
@@ -696,7 +740,8 @@ footer{border-top:1px solid var(--border);padding:32px 40px;display:flex;align-i
   <div class="nav">
     <div class="nav-logo" onclick="goTo('landing')">⚡ Fit<em>Coach</em></div>
     <div class="nav-tabs">
-      <button class="nav-tab active" id="tab-session" onclick="switchTab('session')">⏱ Séance</button>
+      <button class="nav-tab active" id="tab-planning" onclick="switchTab('planning')">📅 Planning</button>
+      <button class="nav-tab" id="tab-session" onclick="switchTab('session')">⏱ Séance</button>
       <button class="nav-tab" id="tab-progress" onclick="switchTab('progress')">📈 Progression</button>
       <button class="nav-tab" id="tab-nutrition" onclick="switchTab('nutrition')">📸 Nutrition</button>
     </div>
@@ -708,8 +753,60 @@ footer{border-top:1px solid var(--border);padding:32px 40px;display:flex;align-i
     </div>
   </div>
 
+  <!-- TAB: PLANNING -->
+  <div id="tab-content-planning" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+    <div style="flex:1;overflow-y:auto;padding:28px 32px;scrollbar-width:thin;scrollbar-color:var(--border) transparent">
+
+      <!-- Header programme -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px">
+        <div>
+          <div style="font-size:11px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Programme sur mesure</div>
+          <h2 style="font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:6px" id="plan-title">Programme Perte de poids</h2>
+          <p style="font-size:14px;color:var(--t2);line-height:1.6" id="plan-desc">12 semaines · 3 séances / semaine · Déficit calorique optimisé</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 18px;text-align:center">
+            <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--accent)" id="plan-semaines">12</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px">semaines</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 18px;text-align:center">
+            <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--blue)" id="plan-total-seances">36</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px">séances total</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 18px;text-align:center">
+            <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--purple)" id="plan-kcal-total">—</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px">kcal totales</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 18px;text-align:center">
+            <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--orange)" id="plan-poids-obj">—</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px">objectif kg</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sélecteur de semaine -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+        <div style="font-size:13px;font-weight:500;color:var(--t2);margin-right:4px">Semaine :</div>
+        <div id="week-selector" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+
+      <!-- Contenu de la semaine sélectionnée -->
+      <div id="week-content"></div>
+
+      <!-- Vue globale toutes semaines -->
+      <div style="margin-top:32px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+          Vue d'ensemble
+          <span style="font-size:11px;font-weight:400;color:var(--t2);font-family:var(--mono)">toutes les semaines</span>
+        </div>
+        <div id="overview-grid" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- TAB: SESSION -->
-  <div id="tab-content-session" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+  <div id="tab-content-session" style="flex:1;display:none;flex-direction:column;overflow:hidden">
     <div class="session-body">
       <div class="cam-zone" id="cam-zone">
         <canvas id="skeleton-canvas"></canvas>
@@ -1195,15 +1292,15 @@ function obBack(step) {
 function finishOnboarding() {
   document.getElementById('em-poids').value = profile.poids;
   generateProgram();
+  buildFullProgram();
   seedDemoData();
   buildExoList(); updateProgress(); sessionStartTime = Date.now();
   const firstExo = exercises[0];
   document.getElementById('nav-exo-info').innerHTML = `<span style="font-weight:500">${firstExo.name}</span> <span style="background:var(--s2);padding:2px 8px;border-radius:20px;border:1px solid var(--border);font-size:11px">Série 1/${firstExo.sets}</span>`;
   document.getElementById('btn-end-s').style.display = '';
   goTo('app');
-  const equip = [...new Set(exercises.map(e=>e.equip).filter(e=>e!=='Aucun'))];
-  const equipStr = equip.length ? `Équipement : **${equip.join(', ')}**. ` : 'Aucun équipement nécessaire. ';
-  setTimeout(() => coachMsg(`Salut ${profile.prenom || ''} ! 👋 Programme **${profile.objectif==='perte'?'Perte de poids':profile.objectif==='muscle'?'Muscle':'Cardio'}** généré — ${exercises.length} exercices, déficit **${profile.deficit} kcal/j**. ${equipStr}On commence par **${firstExo.name}** — ${firstExo.sets} séries${firstExo.reps?` de ${firstExo.reps} reps`:' de 30 sec'}. Active ta caméra !`), 800);
+  // Affiche le planning en premier
+  switchTab('planning');
   setTimeout(() => nutrCoachMsg('Salut ! Je suis ton coach nutrition. Prends ton plat en photo et je t\'analyse ça en secondes — calories, macros, et verdict sèche. 📸'), 1000);
 }
 
@@ -1235,16 +1332,185 @@ function doPayment() {
 }
 
 // ════════════════════════════════════════
-// APP TABS
+// APP TABS + PLANNING
 // ════════════════════════════════════════
+let currentWeek = 1;
+let fullProgram = [];
+let completedSessions = new Set();
+let todaySessionId = null;
+
 function switchTab(name) {
-  ['session','progress','nutrition'].forEach(t => {
-    document.getElementById('tab-' + t).classList.remove('active');
-    document.getElementById('tab-content-' + t).style.display = 'none';
+  ['planning','session','progress','nutrition'].forEach(t => {
+    const tab = document.getElementById('tab-' + t);
+    const content = document.getElementById('tab-content-' + t);
+    if(tab) tab.classList.remove('active');
+    if(content) content.style.display = 'none';
   });
   document.getElementById('tab-' + name).classList.add('active');
   document.getElementById('tab-content-' + name).style.display = 'flex';
   if(name === 'progress') renderProgress();
+  if(name === 'planning') renderPlanning(currentWeek);
+}
+
+// ─── TEMPLATES SÉANCES ───────────────────────────
+const SEANCE_TEMPLATES = {
+  perte:[
+    {name:'Full Body Brûle-Graisses',emoji:'🔥',duration:45,kcal:380,focus:'Cardio + Force',ids:[72,1,25,50,12,57],desc:'Séance complète combinant cardio et renforcement pour maximiser la dépense calorique.'},
+    {name:'HIIT Cardio Intense',emoji:'⚡',duration:30,kcal:310,focus:'Cardio HIIT',ids:[77,21,79,80,57,75],desc:'Intervalles haute intensité pour booster le métabolisme. Brûle des calories pendant 24h après.'},
+    {name:'Renforcement Musculaire',emoji:'💪',duration:40,kcal:290,focus:'Force',ids:[16,29,37,63,66,13],desc:'Force pure pour préserver la masse musculaire pendant la perte de poids.'},
+    {name:'Jambes & Fessiers',emoji:'🦵',duration:40,kcal:340,focus:'Jambes',ids:[3,5,7,14,15,54],desc:'Focus sur les plus grands groupes musculaires pour maximiser la dépense calorique.'},
+    {name:'Cardio Doux + Gainage',emoji:'🧘',duration:35,kcal:220,focus:'Récup active',ids:[20,50,51,60,82,90],desc:'Récupération active. Mobilité et gainage léger pour maintenir l'activité sans surcharger.'},
+    {name:'Upper Body Complet',emoji:'🏋️',duration:40,kcal:300,focus:'Haut du corps',ids:[25,27,43,35,63,65],desc:'Travail complet du haut du corps : poitrine, dos, épaules, bras.'},
+  ],
+  muscle:[
+    {name:'Poitrine & Triceps',emoji:'💪',duration:45,kcal:280,focus:'Poitrine',ids:[25,27,29,31,66,70],desc:'Séance dédiée à la poitrine et triceps avec progression de charge.'},
+    {name:'Dos & Biceps',emoji:'🏋️',duration:45,kcal:270,focus:'Dos',ids:[37,38,40,42,63,64],desc:'Construction du dos et biceps pour une silhouette en V.'},
+    {name:'Jambes Complètes',emoji:'🦵',duration:50,kcal:350,focus:'Jambes',ids:[1,16,93,12,13,23],desc:'Séance jambes pour développer quadriceps, ischio et fessiers.'},
+    {name:'Épaules & Abdos',emoji:'⚡',duration:40,kcal:260,focus:'Épaules',ids:[43,44,46,50,62,98],desc:'Définition des épaules et gainage abdominal.'},
+    {name:'Full Body Force',emoji:'🔥',duration:50,kcal:320,focus:'Full Body',ids:[91,93,92,50,98,100],desc:'Exercices polyarticulaires pour une prise de masse efficace.'},
+    {name:'Bras & Épaules',emoji:'💪',duration:35,kcal:230,focus:'Bras',ids:[63,65,66,70,43,49],desc:'Définition des bras et des épaules. Biceps, triceps, deltoïdes.'},
+  ],
+  cardio:[
+    {name:'HIIT Explosif',emoji:'⚡',duration:25,kcal:320,focus:'HIIT',ids:[72,77,79,80,75,20],desc:'30s effort max, 30s repos. Brûlage calorique maximum.'},
+    {name:'Cardio Endurance',emoji:'🏃',duration:40,kcal:260,focus:'Endurance',ids:[20,21,78,75,76,73],desc:'Cardio modéré pour développer l'endurance cardiovasculaire.'},
+    {name:'Circuit Training',emoji:'🔄',duration:35,kcal:310,focus:'Circuit',ids:[91,73,57,72,50,21],desc:'Enchaînements sans repos pour maintenir la fréquence cardiaque haute.'},
+    {name:'Mobilité & Récup',emoji:'🧘',duration:30,kcal:150,focus:'Récup',ids:[82,85,86,88,89,90],desc:'Récupération active. Étirements et mobilité pour préparer les prochaines séances.'},
+  ],
+  forme:[
+    {name:'Full Body Débutant',emoji:'🌟',duration:35,kcal:250,focus:'Full Body',ids:[1,26,35,50,63,12],desc:'Tous les groupes musculaires avec des exercices accessibles.'},
+    {name:'Cardio Doux',emoji:'🚶',duration:30,kcal:200,focus:'Cardio',ids:[20,21,75,73,81,82],desc:'Cardio accessible pour améliorer la condition physique générale.'},
+    {name:'Renforcement Global',emoji:'💪',duration:35,kcal:230,focus:'Renforcement',ids:[4,26,43,60,65,13],desc:'Renforcement musculaire global pour développer la force de base.'},
+    {name:'Souplesse & Gainage',emoji:'🧘',duration:30,kcal:150,focus:'Mobilité',ids:[50,51,82,85,88,90],desc:'Flexibilité et gainage pour une meilleure posture.'},
+  ],
+};
+
+function buildFullProgram() {
+  const obj = profile.objectif || 'perte';
+  const freq = parseInt(profile.freq) || 3;
+  const nbWeeks = obj==='perte'?12:obj==='muscle'?10:8;
+  const templates = SEANCE_TEMPLATES[obj] || SEANCE_TEMPLATES.forme;
+  const phases = obj==='perte'?[
+    {weeks:[1,2,3],name:'Phase 1 — Activation',color:'#4a9eff',desc:'Mise en route progressive. Créer l'habitude et préparer le corps.'},
+    {weeks:[4,5,6,7],name:'Phase 2 — Accélération',color:'#c8f55a',desc:'L'intensité monte. Les résultats commencent à être visibles.'},
+    {weeks:[8,9,10,11,12],name:'Phase 3 — Transformation',color:'#ff6b4a',desc:'Phase finale haute intensité. Maximum de dépense calorique.'},
+  ]:obj==='muscle'?[
+    {weeks:[1,2,3,4],name:'Phase 1 — Fondation',color:'#4a9eff',desc:'Apprentissage des mouvements et activation musculaire.'},
+    {weeks:[5,6,7,8],name:'Phase 2 — Construction',color:'#c8f55a',desc:'Augmentation progressive des charges et du volume.'},
+    {weeks:[9,10],name:'Phase 3 — Intensification',color:'#ff6b4a',desc:'Volume maximum pour la phase finale.'},
+  ]:[
+    {weeks:[1,2],name:'Phase 1 — Démarrage',color:'#4a9eff',desc:'Prise en main du programme.'},
+    {weeks:[3,4,5,6,7,8],name:'Phase 2 — Progression',color:'#c8f55a',desc:'Montée en intensité progressive.'},
+  ];
+
+  fullProgram = [];
+  let sessionCounter = 0;
+  for(let w=1;w<=nbWeeks;w++){
+    const phase = phases.find(p=>p.weeks.includes(w))||phases[phases.length-1];
+    const intensityMult = 0.8+(w/nbWeeks)*0.4;
+    const trainDays = freq===2?['Lundi','Jeudi']:freq===3?['Lundi','Mercredi','Vendredi']:freq===4?['Lundi','Mardi','Jeudi','Vendredi']:freq===5?['Lundi','Mardi','Mercredi','Jeudi','Vendredi']:['Lundi','Mercredi','Vendredi'];
+    const weekSessions = [];
+    trainDays.forEach((day,i)=>{
+      const tpl = templates[sessionCounter%templates.length];
+      const level = profile.niveau||'intermediaire';
+      const sessionExos = tpl.ids.map(id=>ALL_EXERCISES.find(e=>e.id===id)).filter(Boolean).map(e=>({
+        ...e,
+        sets:Math.max(2,Math.round((level==='debutant'?e.sets-1:level==='avance'?e.sets+1:e.sets)*(w<=2?0.8:w<=5?0.9:1))),
+        reps:e.reps?Math.max(4,Math.round((level==='debutant'?e.reps-3:level==='avance'?e.reps+3:e.reps)*(w<=2?0.8:w<=5?0.9:1))):null,
+      }));
+      weekSessions.push({id:`w${w}s${i}`,week:w,day,name:tpl.name,emoji:tpl.emoji,duration:Math.round(tpl.duration*intensityMult),kcal:Math.round(tpl.kcal*intensityMult),focus:tpl.focus,desc:tpl.desc,exos:sessionExos,phase});
+      sessionCounter++;
+    });
+    fullProgram.push({week:w,phase,sessions:weekSessions});
+  }
+
+  const totalSeances = fullProgram.reduce((s,w)=>s+w.sessions.length,0);
+  const totalKcal = fullProgram.reduce((s,w)=>s+w.sessions.reduce((ss,ses)=>ss+ses.kcal,0),0);
+  const targetPoids = obj==='perte'?(profile.poids-Math.round(totalKcal/7700)).toFixed(1):(profile.poids+3).toFixed(1);
+  const objLabels={perte:'Perte de poids',muscle:'Prise de muscle',cardio:'Endurance cardio',forme:'Remise en forme'};
+  document.getElementById('plan-title').textContent='Programme '+objLabels[obj];
+  document.getElementById('plan-desc').textContent=`${nbWeeks} semaines · ${freq} séances/semaine · ${profile.niveau}`;
+  document.getElementById('plan-semaines').textContent=nbWeeks;
+  document.getElementById('plan-total-seances').textContent=totalSeances;
+  document.getElementById('plan-kcal-total').textContent=(totalKcal/1000).toFixed(0)+'k';
+  document.getElementById('plan-poids-obj').textContent=targetPoids+'kg';
+  if(fullProgram[0]?.sessions[0]) todaySessionId=fullProgram[0].sessions[0].id;
+  currentWeek=1;
+}
+
+function renderPlanning(weekNum) {
+  currentWeek=weekNum;
+  if(!fullProgram.length) return;
+  const sel=document.getElementById('week-selector');
+  sel.innerHTML=fullProgram.map(w=>{
+    const allDone=w.sessions.every(s=>completedSessions.has(s.id));
+    const isActive=w.week===weekNum;
+    const isCurrent=w.sessions.some(s=>s.id===todaySessionId);
+    return `<button class="week-btn ${isActive?'active':''} ${allDone?'done':''} ${isCurrent&&!isActive?'current':''}" onclick="renderPlanning(${w.week})">S${w.week}${allDone?' ✓':''}</button>`;
+  }).join('');
+  const weekData=fullProgram[weekNum-1];
+  if(!weekData) return;
+  const phase=weekData.phase;
+  document.getElementById('week-content').innerHTML=`
+    <div class="phase-badge"><div class="phase-dot" style="background:${phase.color}"></div><span style="font-size:12px;font-weight:600;color:${phase.color}">${phase.name}</span><span style="font-size:12px;color:var(--t2);margin-left:4px">— ${phase.desc}</span></div>
+    <div style="font-family:var(--display);font-size:18px;font-weight:700;margin-bottom:16px">Semaine ${weekNum} — ${weekData.sessions.length} séance${weekData.sessions.length>1?'s':''}</div>
+    ${weekData.sessions.map(ses=>renderSeanceCard(ses)).join('')}
+  `;
+  document.getElementById('overview-grid').innerHTML=fullProgram.map(w=>`
+    <div class="overview-row"><div class="overview-week">Sem. ${w.week}</div>
+    <div class="overview-pills">${w.sessions.map(s=>`<div class="ov-pill ${completedSessions.has(s.id)?'done':s.id===todaySessionId?'today':''}" style="cursor:pointer" onclick="renderPlanning(${w.week})">${s.emoji} ${s.name}${completedSessions.has(s.id)?' ✓':''}</div>`).join('')}</div></div>
+  `).join('');
+}
+
+function renderSeanceCard(ses) {
+  const isDone=completedSessions.has(ses.id);
+  const isToday=ses.id===todaySessionId;
+  let statusHtml,btnHtml;
+  if(isDone){
+    statusHtml=`<div class="seance-status status-done">✓ Terminée</div>`;
+    btnHtml=`<button class="btn-launch done-btn" onclick="switchTab('progress')">📊 Voir mes résultats</button>`;
+  } else if(isToday){
+    statusHtml=`<div class="seance-status status-today">● Aujourd'hui</div>`;
+    btnHtml=`<button class="btn-launch" onclick="launchSession('${ses.id}')">▶ Lancer la séance →</button>`;
+  } else {
+    statusHtml=`<div class="seance-status status-next">À venir</div>`;
+    btnHtml=`<button class="btn-launch" style="background:var(--s2);color:var(--t2);border:1px solid var(--border)" onclick="launchSession('${ses.id}')">▶ Lancer quand même</button>`;
+  }
+  const equips=[...new Set(ses.exos.map(e=>e.equip).filter(e=>e&&e!=='Aucun'))];
+  const equipStr=equips.length?equips.join(', '):'Aucun équipement';
+  return `<div class="seance-card ${isDone?'completed':''} ${isToday?'today':''}">
+    <div class="seance-hdr">
+      <div>
+        <div class="seance-day">${ses.day} · Semaine ${ses.week}</div>
+        <div class="seance-name">${ses.emoji} ${ses.name}</div>
+        <div class="seance-meta"><span>⏱ ${ses.duration} min</span><span>🔥 ${ses.kcal} kcal</span><span>💪 ${ses.focus}</span><span>🏠 ${equipStr}</span></div>
+      </div>${statusHtml}
+    </div>
+    <p style="font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:14px">${ses.desc}</p>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);font-weight:500;margin-bottom:10px">Exercices au programme</div>
+    <div class="exo-preview">${ses.exos.map(e=>`<div class="exo-pill ${isDone?'done-pill':''}"><div class="exo-pill-name">${isDone?'✓ ':''}${e.name}</div><div class="exo-pill-detail">${e.sets}×${e.reps||'30s'} · ${e.rest}s repos</div><div class="exo-pill-equip">${e.muscles}</div></div>`).join('')}</div>
+    <div class="seance-footer"><div class="seance-kcal">Estimé : <strong>${ses.kcal} kcal</strong> · <strong>${ses.duration} min</strong></div>${btnHtml}</div>
+  </div>`;
+}
+
+function launchSession(sessionId) {
+  const allSessions=fullProgram.flatMap(w=>w.sessions);
+  const ses=allSessions.find(s=>s.id===sessionId);
+  if(!ses) return;
+  todaySessionId=sessionId;
+  exercises=ses.exos;
+  currentExo=0;currentSet=1;reps=0;totalRepsSession=0;totalFormErrors=0;
+  sessionStartTime=Date.now();repPhase='up';errorState=false;
+  document.getElementById('rep-val').textContent=0;
+  document.getElementById('prog-fill').style.width='0%';
+  document.getElementById('prog-pct').textContent='0%';
+  document.getElementById('no-cam').style.display='flex';
+  document.getElementById('cam-overlay').style.display='none';
+  if(demoAnimId){cancelAnimationFrame(demoAnimId);demoAnimId=null;}
+  clearInterval(analysisInterval);stopTimer();
+  buildExoList();updateNavExoInfo();
+  document.getElementById('btn-end-s').style.display='';
+  switchTab('session');
+  setTimeout(()=>coachMsg(`C'est parti ! 💪 Séance **${ses.name}** — ${ses.exos.length} exercices, **${ses.duration} min** estimées. On commence par **${ses.exos[0].name}**. Active ta caméra !`),600);
 }
 
 // ════════════════════════════════════════
@@ -1455,7 +1721,18 @@ function closeEnd(){document.getElementById('end-modal-bg').classList.remove('op
 function saveAndClose(){
   const poids=+document.getElementById('em-poids').value||profile.poids;
   sessions.push({id:Date.now(),date:new Date(),name:exercises[Math.min(currentExo,exercises.length-1)].name+' & autres',poids,kcal:currentSession.kcal,score:currentSession.score,reps:currentSession.reps,duration:currentSession.dur,tags:[profile.objectif==='perte'?'Perte de poids':'Muscle','Force'],errors:currentSession.errors});
-  closeEnd(); switchTab('progress');
+  // Marque la séance comme terminée dans le planning
+  if(todaySessionId) {
+    completedSessions.add(todaySessionId);
+    const allSessions=fullProgram.flatMap(w=>w.sessions);
+    const idx=allSessions.findIndex(s=>s.id===todaySessionId);
+    if(idx<allSessions.length-1){
+      todaySessionId=allSessions[idx+1].id;
+      currentWeek=allSessions[idx+1].week;
+    }
+  }
+  closeEnd();
+  switchTab('planning');
 }
 
 // ════════════════════════════════════════
