@@ -880,13 +880,212 @@ let nutrImageB64 = null, nutrMediaType = 'image/jpeg', lastAnalysis = null;
 let dailyKcal = 850, dailyBudget = 1840;
 let isPro = false;
 
-const exercises = [
-  {name:'Squat',sets:4,reps:12,rest:60},
-  {name:'Pompes',sets:3,reps:15,rest:45},
-  {name:'Fentes avant',sets:3,reps:10,rest:60},
-  {name:'Gainage',sets:3,reps:null,rest:30},
+// ════════════ BASE DE 100+ EXERCICES ════════════
+// Catégories: jambes, fessiers, abdos, dos, poitrine, épaules, bras, cardio, mobilité
+// Équipement: aucun, chaise, mur, serviette, bouteilles, table, sac
+// Niveaux: debutant, intermediaire, avance
+const ALL_EXERCISES = [
+  // ── JAMBES ──────────────────────────────────────
+  {id:1,name:'Squat classique',cat:'Jambes',equip:'Aucun',level:'debutant',sets:4,reps:12,rest:60,kcal:8,muscles:'Quadriceps, fessiers',tips:'Pieds écartés largeur épaules, descends jusqu\'à 90°, genoux dans l\'axe.'},
+  {id:2,name:'Squat sumo',cat:'Jambes',equip:'Aucun',level:'debutant',sets:3,reps:15,rest:60,kcal:9,muscles:'Adducteurs, fessiers, quadriceps',tips:'Pieds très écartés, orteils pointés vers l\'extérieur. Descends lentement.'},
+  {id:3,name:'Squat sauté',cat:'Jambes',equip:'Aucun',level:'intermediaire',sets:3,reps:10,rest:90,kcal:14,muscles:'Quadriceps, mollets, fessiers',tips:'Descends en squat puis explose vers le haut. Réception douce sur les pointes.'},
+  {id:4,name:'Fentes avant',cat:'Jambes',equip:'Aucun',level:'debutant',sets:3,reps:10,rest:60,kcal:8,muscles:'Quadriceps, fessiers, ischio-jambiers',tips:'Genou avant à 90°, genou arrière effleure le sol. Dos droit.'},
+  {id:5,name:'Fentes latérales',cat:'Jambes',equip:'Aucun',level:'intermediaire',sets:3,reps:10,rest:60,kcal:9,muscles:'Adducteurs, quadriceps, fessiers',tips:'Écarte une jambe sur le côté, plie ce genou, l\'autre jambe reste tendue.'},
+  {id:6,name:'Fentes marchées',cat:'Jambes',equip:'Aucun',level:'intermediaire',sets:3,reps:12,rest:60,kcal:10,muscles:'Quadriceps, fessiers, ischio',tips:'Avance en alternant les jambes. Garde le buste droit, amplitude maximale.'},
+  {id:7,name:'Fentes sautées',cat:'Jambes',equip:'Aucun',level:'avance',sets:3,reps:8,rest:90,kcal:15,muscles:'Quadriceps, fessiers, cardio',tips:'Depuis la position fente, saute et échange les jambes en l\'air.'},
+  {id:8,name:'Montée de genou haute',cat:'Jambes',equip:'Aucun',level:'debutant',sets:3,reps:null,rest:30,kcal:12,muscles:'Fléchisseurs hanche, abdos, cardio',tips:'Cours sur place en montant les genoux au maximum. Bras actifs.'},
+  {id:9,name:'Talons-fesses',cat:'Jambes',equip:'Aucun',level:'debutant',sets:3,reps:null,rest:30,kcal:11,muscles:'Ischio-jambiers, cardio',tips:'Cours sur place en ramenant les talons vers les fesses. Dos droit.'},
+  {id:10,name:'Step-up sur chaise',cat:'Jambes',equip:'Chaise',level:'debutant',sets:3,reps:10,rest:60,kcal:9,muscles:'Quadriceps, fessiers',tips:'Monte sur la chaise une jambe à la fois. Pousse sur le talon. Contrôle la descente.'},
+  {id:11,name:'Squat sur chaise',cat:'Jambes',equip:'Chaise',level:'debutant',sets:3,reps:15,rest:60,kcal:7,muscles:'Quadriceps, fessiers',tips:'Descends comme pour t\'asseoir sur la chaise, effleure-la et remonte. Parfait pour débutants.'},
+  {id:12,name:'Pont fessier',cat:'Fessiers',equip:'Aucun',level:'debutant',sets:4,reps:15,rest:45,kcal:6,muscles:'Fessiers, ischio-jambiers, lombaires',tips:'Allongé sur le dos, pieds à plat, monte les hanches en contractant les fessiers. Tiens 2 sec en haut.'},
+  {id:13,name:'Pont fessier unilatéral',cat:'Fessiers',equip:'Aucun',level:'intermediaire',sets:3,reps:12,rest:45,kcal:7,muscles:'Fessiers, ischio, équilibre',tips:'Même que le pont mais une jambe tendue en l\'air. Garde les hanches horizontales.'},
+  {id:14,name:'Donkey kicks',cat:'Fessiers',equip:'Aucun',level:'debutant',sets:3,reps:15,rest:45,kcal:6,muscles:'Grand fessier',tips:'À 4 pattes, pousse un talon vers le plafond en contractant le fessier. Dos plat.'},
+  {id:15,name:'Fire hydrant',cat:'Fessiers',equip:'Aucun',level:'debutant',sets:3,reps:15,rest:45,kcal:6,muscles:'Moyen fessier, abducteurs',tips:'À 4 pattes, écarte un genou sur le côté comme un chien qui lève la patte. Contrôlé.'},
+  {id:16,name:'Squat bulgare',cat:'Jambes',equip:'Chaise',level:'avance',sets:3,reps:10,rest:90,kcal:12,muscles:'Quadriceps, fessiers, équilibre',tips:'Pied arrière sur la chaise, descends le genou avant vers le sol. Amplitude max.'},
+  {id:17,name:'Leg curl avec serviette',cat:'Jambes',equip:'Serviette',level:'intermediaire',sets:3,reps:12,rest:60,kcal:7,muscles:'Ischio-jambiers',tips:'Allongé sur le sol, pieds sur une serviette, fais glisser les talons vers les fessiers.'},
+  {id:18,name:'Squat isométrique mur',cat:'Jambes',equip:'Mur',level:'debutant',sets:3,reps:null,rest:60,kcal:8,muscles:'Quadriceps, fessiers',tips:'Dos au mur, descends à 90°, tiens la position. Commence par 30 secondes.'},
+  {id:19,name:'Pistol squat assisté',cat:'Jambes',equip:'Mur',level:'avance',sets:3,reps:6,rest:90,kcal:13,muscles:'Quadriceps, fessiers, équilibre',tips:'Tiens le mur d\'une main, descends sur une jambe en tendant l\'autre devant.'},
+  {id:20,name:'Saut sur place',cat:'Cardio',equip:'Aucun',level:'debutant',sets:3,reps:null,rest:30,kcal:13,muscles:'Mollets, cardio général',tips:'Saute sur place, réception souple sur les pointes. Bras en rythme.'},
+  {id:21,name:'Jumping jacks',cat:'Cardio',equip:'Aucun',level:'debutant',sets:3,reps:null,rest:30,kcal:12,muscles:'Corps entier, cardio',tips:'Écarte bras et jambes en même temps au saut. Rythme régulier.'},
+  {id:22,name:'Montées de caisse',cat:'Jambes',equip:'Chaise',level:'intermediaire',sets:3,reps:12,rest:60,kcal:10,muscles:'Quadriceps, fessiers, mollets',tips:'Monte et descends rapidement d\'une chaise basse en alternant les pieds.'},
+  {id:23,name:'Mollets debout',cat:'Jambes',equip:'Aucun',level:'debutant',sets:4,reps:20,rest:30,kcal:4,muscles:'Mollets, soléaires',tips:'Debout, monte sur les pointes de pieds, tiens 1 sec, descends lentement.'},
+  {id:24,name:'Mollets unilatéraux',cat:'Jambes',equip:'Mur',level:'intermediaire',sets:3,reps:15,rest:30,kcal:5,muscles:'Mollets',tips:'Main au mur, monte sur la pointe d\'un seul pied. Plus intense que les deux.'},
+
+  // ── POITRINE ────────────────────────────────────
+  {id:25,name:'Pompes classiques',cat:'Poitrine',equip:'Aucun',level:'debutant',sets:3,reps:12,rest:60,kcal:8,muscles:'Pectoraux, triceps, épaules',tips:'Corps aligné de la tête aux talons. Descends jusqu\'à 5cm du sol. Coudes à 45°.'},
+  {id:26,name:'Pompes genou au sol',cat:'Poitrine',equip:'Aucun',level:'debutant',sets:3,reps:15,rest:60,kcal:6,muscles:'Pectoraux, triceps',tips:'Genoux au sol pour réduire la charge. Idéal pour débutants. Même forme que les pompes classiques.'},
+  {id:27,name:'Pompes larges',cat:'Poitrine',equip:'Aucun',level:'intermediaire',sets:3,reps:10,rest:60,kcal:9,muscles:'Pectoraux extérieurs, épaules',tips:'Mains plus écartées que la largeur des épaules. Cible les pectoraux externes.'},
+  {id:28,name:'Pompes serrées',cat:'Poitrine',equip:'Aucun',level:'intermediaire',sets:3,reps:10,rest:60,kcal:8,muscles:'Triceps, pectoraux internes',tips:'Mains proches l\'une de l\'autre sous la poitrine. Coudes le long du corps.'},
+  {id:29,name:'Pompes déclinées',cat:'Poitrine',equip:'Chaise',level:'avance',sets:3,reps:10,rest:60,kcal:10,muscles:'Pectoraux hauts, épaules',tips:'Pieds sur la chaise, mains au sol. Travaille la partie haute des pectoraux.'},
+  {id:30,name:'Pompes inclinées',cat:'Poitrine',equip:'Chaise',level:'debutant',sets:3,reps:12,rest:60,kcal:7,muscles:'Pectoraux bas, triceps',tips:'Mains sur la chaise, corps incliné. Plus facile que les pompes classiques.'},
+  {id:31,name:'Pompes sautées',cat:'Poitrine',equip:'Aucun',level:'avance',sets:3,reps:8,rest:90,kcal:14,muscles:'Pectoraux, triceps, explosivité',tips:'Descends en pompe puis explose vers le haut, mains qui quittent le sol.'},
+  {id:32,name:'Pompes araignée',cat:'Poitrine',equip:'Aucun',level:'avance',sets:3,reps:8,rest:90,kcal:11,muscles:'Pectoraux, abdos, épaules',tips:'En descendant en pompe, ramène un genou vers le coude du même côté. Alterne.'},
+  {id:33,name:'Ouverture pec avec bouteilles',cat:'Poitrine',equip:'Bouteilles',level:'debutant',sets:3,reps:15,rest:45,kcal:5,muscles:'Pectoraux, stabilisateurs',tips:'Allongé au sol, bouteilles en main, bras tendus. Écarte puis ramène comme un câble.'},
+  {id:34,name:'Pompes avec pause',cat:'Poitrine',equip:'Aucun',level:'intermediaire',sets:3,reps:8,rest:75,kcal:9,muscles:'Pectoraux, triceps, force',tips:'Descends en 3s, tiens 2s en bas, remonte en 1s. Contrôle total.'},
+
+  // ── DOS ─────────────────────────────────────────
+  {id:35,name:'Superman',cat:'Dos',equip:'Aucun',level:'debutant',sets:3,reps:15,rest:45,kcal:5,muscles:'Lombaires, érecteurs du rachis',tips:'Allongé ventre au sol, lève bras et jambes en même temps. Tiens 2 sec.'},
+  {id:36,name:'Superman alterné',cat:'Dos',equip:'Aucun',level:'debutant',sets:3,reps:12,rest:45,kcal:5,muscles:'Lombaires, fessiers',tips:'Même position mais lève le bras droit et la jambe gauche en même temps. Alterne.'},
+  {id:37,name:'Tirage bouteilles',cat:'Dos',equip:'Bouteilles',level:'debutant',sets:3,reps:15,rest:60,kcal:6,muscles:'Grand dorsal, biceps, rhomboïdes',tips:'Buste penché à 45°, tire les bouteilles vers le nombril. Coudes rasent les côtes.'},
+  {id:38,name:'Tirage serviette sur table',cat:'Dos',equip:'Table,Serviette',level:'intermediaire',sets:3,reps:10,rest:60,kcal:10,muscles:'Grand dorsal, biceps',tips:'Glisse sous une table solide, accroche la serviette, tire ton buste vers le haut.'},
+  {id:39,name:'Good morning',cat:'Dos',equip:'Aucun',level:'debutant',sets:3,reps:15,rest:45,kcal:6,muscles:'Lombaires, ischio-jambiers',tips:'Debout, mains derrière la tête, penche le buste en avant à 45° en gardant le dos droit.'},
+  {id:40,name:'Oiseau avec bouteilles',cat:'Dos',equip:'Bouteilles',level:'intermediaire',sets:3,reps:12,rest:60,kcal:6,muscles:'Deltoïdes postérieurs, rhomboïdes',tips:'Buste à l\'horizontal, bras pendants, écarte les bras sur les côtés. Pincement des omoplates.'},
+  {id:41,name:'Extension lombaire au sol',cat:'Dos',equip:'Aucun',level:'debutant',sets:3,reps:15,rest:45,kcal:5,muscles:'Lombaires',tips:'Allongé sur le ventre, mains sous le front, soulève le buste sans aide des bras.'},
+  {id:42,name:'Tirage chaise',cat:'Dos',equip:'Chaise',level:'intermediaire',sets:3,reps:12,rest:60,kcal:7,muscles:'Grand dorsal, biceps',tips:'Un genou et une main sur la chaise, tire une bouteille vers la hanche. Coude haut.'},
+
+  // ── ÉPAULES ─────────────────────────────────────
+  {id:43,name:'Élévations latérales bouteilles',cat:'Épaules',equip:'Bouteilles',level:'debutant',sets:3,reps:15,rest:45,kcal:5,muscles:'Deltoïdes latéraux',tips:'Debout, bras le long du corps, monte les bras sur les côtés jusqu\'à l\'horizontal. Coudes légèrement fléchis.'},
+  {id:44,name:'Développé militaire bouteilles',cat:'Épaules',equip:'Bouteilles',level:'intermediaire',sets:3,reps:12,rest:60,kcal:7,muscles:'Deltoïdes, triceps, trapèzes',tips:'Bouteilles à hauteur d\'oreilles, pousse vers le plafond. Gainage du buste.'},
+  {id:45,name:'Élévations frontales bouteilles',cat:'Épaules',equip:'Bouteilles',level:'debutant',sets:3,reps:12,rest:45,kcal:5,muscles:'Deltoïdes antérieurs',tips:'Bras tendus, monte une bouteille devant toi jusqu\'à l\'horizontal. Contrôle la descente.'},
+  {id:46,name:'Pike push-up',cat:'Épaules',equip:'Aucun',level:'intermediaire',sets:3,reps:10,rest:60,kcal:8,muscles:'Deltoïdes, triceps, trapèzes',tips:'En position V inversé, fléchis les coudes pour descendre la tête vers le sol.'},
+  {id:47,name:'Handstand push-up au mur',cat:'Épaules',equip:'Mur',level:'avance',sets:3,reps:6,rest:120,kcal:14,muscles:'Deltoïdes, triceps, core',tips:'Pieds au mur, position verticale. Descends la tête vers le sol. Force maximale.'},
+  {id:48,name:'Rotation épaules bouteilles',cat:'Épaules',equip:'Bouteilles',level:'debutant',sets:3,reps:15,rest:30,kcal:4,muscles:'Coiffe des rotateurs, deltoïdes',tips:'Coude à 90°, fais tourner l\'avant-bras de l\'extérieur vers l\'intérieur. Préventif.'},
+  {id:49,name:'W-raise au sol',cat:'Épaules',equip:'Bouteilles',level:'debutant',sets:3,reps:15,rest:45,kcal:5,muscles:'Trapèzes inférieurs, rhomboïdes',tips:'Allongé sur le ventre, coudes à 90°, soulève les bras en formant un W. Pincement des omoplates.'},
+
+  // ── ABDOMINAUX ──────────────────────────────────
+  {id:50,name:'Gainage planche',cat:'Abdos',equip:'Aucun',level:'debutant',sets:3,reps:null,rest:45,kcal:5,muscles:'Core entier, abdos transverses',tips:'Corps rigide comme une planche. Ne laisse pas les hanches tomber. Respire normalement.'},
+  {id:51,name:'Gainage latéral',cat:'Abdos',equip:'Aucun',level:'intermediaire',sets:3,reps:null,rest:45,kcal:5,muscles:'Obliques, grand latéral',tips:'Appui sur un coude et le côté du pied. Corps aligné. Soulève la hanche.'},
+  {id:52,name:'Crunch classique',cat:'Abdos',equip:'Aucun',level:'debutant',sets:3,reps:20,rest:45,kcal:5,muscles:'Droits abdominaux',tips:'Mains derrière la tête sans tirer le cou. Monte les épaules, bas du dos reste au sol.'},
+  {id:53,name:'Crunch obliques',cat:'Abdos',equip:'Aucun',level:'debutant',sets:3,reps:15,rest:45,kcal:5,muscles:'Obliques',tips:'Crunch classique mais amène le coude vers le genou opposé. Alterne les côtés.'},
+  {id:54,name:'Relevé de jambes',cat:'Abdos',equip:'Aucun',level:'intermediaire',sets:3,reps:12,rest:60,kcal:7,muscles:'Abdos bas, fléchisseurs hanche',tips:'Allongé, mains sous les fesses, monte les jambes tendues à 90°. Contrôle la descente.'},
+  {id:55,name:'Ciseau horizontal',cat:'Abdos',equip:'Aucun',level:'intermediaire',sets:3,reps:null,rest:45,kcal:7,muscles:'Abdos bas, fléchisseurs hanche',tips:'Jambes à 30cm du sol, croise-les en alternant le dessus. Dos plaqué au sol.'},
+  {id:56,name:'Vélo au sol',cat:'Abdos',equip:'Aucun',level:'intermediaire',sets:3,reps:null,rest:45,kcal:8,muscles:'Obliques, abdos droits',tips:'Pédale avec les jambes, amène chaque coude vers le genou opposé. Rythme lent et contrôlé.'},
+  {id:57,name:'Mountain climbers',cat:'Abdos',equip:'Aucun',level:'intermediaire',sets:3,reps:null,rest:45,kcal:13,muscles:'Core, cardio, épaules',tips:'En position de pompe, ramène les genoux vers la poitrine en alternant rapidement.'},
+  {id:58,name:'Dragon flag assisté',cat:'Abdos',equip:'Chaise',level:'avance',sets:3,reps:8,rest:90,kcal:10,muscles:'Core entier, abdos',tips:'Allongé, mains sous la chaise, monte les jambes et descends lentement en gardant le corps droit.'},
+  {id:59,name:'V-up',cat:'Abdos',equip:'Aucun',level:'avance',sets:3,reps:12,rest:60,kcal:9,muscles:'Abdos entiers, fléchisseurs hanche',tips:'Monte bras et jambes en même temps pour former un V. Contrôle la descente.'},
+  {id:60,name:'Hollow body',cat:'Abdos',equip:'Aucun',level:'intermediaire',sets:3,reps:null,rest:45,kcal:6,muscles:'Core entier, stabilisation',tips:'Allongé, bras tendus derrière, creuse le ventre et tiens la position avec jambes à 30cm du sol.'},
+  {id:61,name:'Toucher de talons',cat:'Abdos',equip:'Aucun',level:'debutant',sets:3,reps:20,rest:30,kcal:4,muscles:'Obliques',tips:'Allongé genoux pliés, alterne en touchant tes talons latéralement. Mouvement court et contrôlé.'},
+  {id:62,name:'Russian twist bouteilles',cat:'Abdos',equip:'Bouteilles',level:'intermediaire',sets:3,reps:16,rest:45,kcal:7,muscles:'Obliques, core',tips:'Assis à 45°, bouteille dans les mains, tourne le buste de gauche à droite. Pieds décollés si possible.'},
+
+  // ── BRAS ────────────────────────────────────────
+  {id:63,name:'Curl biceps bouteilles',cat:'Bras',equip:'Bouteilles',level:'debutant',sets:3,reps:15,rest:45,kcal:5,muscles:'Biceps',tips:'Coudes fixés le long du corps. Monte les bouteilles lentement, descends encore plus lentement.'},
+  {id:64,name:'Curl marteau bouteilles',cat:'Bras',equip:'Bouteilles',level:'debutant',sets:3,reps:12,rest:45,kcal:5,muscles:'Biceps, brachio-radial',tips:'Même que le curl mais paumes vers l\'intérieur. Travaille plus la partie externe du biceps.'},
+  {id:65,name:'Extension triceps bouteilles',cat:'Bras',equip:'Bouteilles',level:'debutant',sets:3,reps:15,rest:45,kcal:5,muscles:'Triceps',tips:'Bras tendus au-dessus de la tête, descends les bouteilles derrière la tête. Coudes fixes.'},
+  {id:66,name:'Dips sur chaise',cat:'Bras',equip:'Chaise',level:'intermediaire',sets:3,reps:12,rest:60,kcal:8,muscles:'Triceps, pectoraux bas, épaules',tips:'Mains sur le bord de la chaise, dos contre la chaise, descends les fesses vers le sol.'},
+  {id:67,name:'Dips sur chaise pieds tendus',cat:'Bras',equip:'Chaise',level:'avance',sets:3,reps:10,rest:75,kcal:10,muscles:'Triceps, pectoraux, épaules',tips:'Même que les dips mais jambes tendues devant. Beaucoup plus difficile.'},
+  {id:68,name:'Kickback triceps bouteilles',cat:'Bras',equip:'Bouteilles',level:'debutant',sets:3,reps:15,rest:45,kcal:5,muscles:'Triceps',tips:'Buste penché, coude à 90°, pousse la bouteille vers l\'arrière. Fixe bien le coude.'},
+  {id:69,name:'Curl concentration bouteille',cat:'Bras',equip:'Bouteilles',level:'debutant',sets:3,reps:12,rest:45,kcal:5,muscles:'Biceps peak',tips:'Assis, coude appuyé sur la cuisse intérieure. Monte lentement la bouteille. Maximum de concentration.'},
+  {id:70,name:'Diamond push-up',cat:'Bras',equip:'Aucun',level:'avance',sets:3,reps:10,rest:75,kcal:9,muscles:'Triceps, pectoraux internes',tips:'Mains qui forment un losange sous la poitrine. Corps rigide. Coudes rentrent vers les hanches.'},
+  {id:71,name:'Curl inversé bouteilles',cat:'Bras',equip:'Bouteilles',level:'intermediaire',sets:3,reps:12,rest:45,kcal:5,muscles:'Extenseurs avant-bras, biceps',tips:'Paumes vers le bas, effectue un curl classique. Renforce les avant-bras.'},
+
+  // ── CARDIO HIIT ─────────────────────────────────
+  {id:72,name:'Burpee',cat:'Cardio',equip:'Aucun',level:'intermediaire',sets:3,reps:8,rest:90,kcal:18,muscles:'Corps entier, cardio',tips:'Debout → pompe → sauter avec les mains au-dessus de la tête. Rythme explosif.'},
+  {id:73,name:'Burpee sans saut',cat:'Cardio',equip:'Aucun',level:'debutant',sets:3,reps:10,rest:75,kcal:14,muscles:'Corps entier, cardio',tips:'Version allégée : pas de saut final. Debout → pompe → revenir debout. Idéal pour débutants.'},
+  {id:74,name:'Box jump sur chaise',cat:'Cardio',equip:'Chaise',level:'avance',sets:3,reps:8,rest:90,kcal:16,muscles:'Quadriceps, fessiers, explosivité',tips:'Saute sur la chaise avec les deux pieds. Réception douce en demi-squat. Utilise une chaise solide.'},
+  {id:75,name:'Corde à sauter simulée',cat:'Cardio',equip:'Aucun',level:'debutant',sets:4,reps:null,rest:30,kcal:14,muscles:'Mollets, cardio, coordination',tips:'Simule la corde à sauter sans corde : petit saut léger, rotation des poignets.'},
+  {id:76,name:'Shadow boxing',cat:'Cardio',equip:'Aucun',level:'debutant',sets:3,reps:null,rest:45,kcal:13,muscles:'Épaules, core, cardio',tips:'Frappe dans le vide en te déplaçant. Esquive, jabs, crochets. Reste actif sur les pieds.'},
+  {id:77,name:'Skater sauts',cat:'Cardio',equip:'Aucun',level:'intermediaire',sets:3,reps:12,rest:60,kcal:13,muscles:'Fessiers, abducteurs, cardio',tips:'Saute latéralement d\'un pied sur l\'autre comme un patineur. Amplitude maximale.'},
+  {id:78,name:'Bear crawl',cat:'Cardio',equip:'Aucun',level:'intermediaire',sets:3,reps:null,rest:60,kcal:12,muscles:'Core, épaules, cardio',tips:'À 4 pattes, genoux à 5cm du sol, avance et recule en alternant bras/jambes opposés.'},
+  {id:79,name:'Sprint sur place',cat:'Cardio',equip:'Aucun',level:'intermediaire',sets:6,reps:null,rest:30,kcal:16,muscles:'Corps entier, cardio HIIT',tips:'30 sec à fond, 30 sec de marche. Bras actifs, montée de genoux max. Explosif.'},
+  {id:80,name:'Tuck jump',cat:'Cardio',equip:'Aucun',level:'avance',sets:3,reps:10,rest:90,kcal:16,muscles:'Quadriceps, cardio, explosivité',tips:'Saute et ramène les genoux vers la poitrine en l\'air. Réception douce.'},
+  {id:81,name:'Inchworm',cat:'Mobilité',equip:'Aucun',level:'debutant',sets:3,reps:8,rest:45,kcal:7,muscles:'Ischio-jambiers, épaules, core',tips:'Debout, descends les mains au sol, marche avec les mains jusqu\'en pompe, puis reviens.'},
+
+  // ── MOBILITÉ & RÉCUPÉRATION ──────────────────────
+  {id:82,name:'Cat-cow',cat:'Mobilité',equip:'Aucun',level:'debutant',sets:2,reps:15,rest:30,kcal:2,muscles:'Colonne vertébrale, mobilité',tips:'À 4 pattes, alterne dos creusé (tête haute) et dos rond (tête basse). Lent et contrôlé.'},
+  {id:83,name:'Hip flexor stretch',cat:'Mobilité',equip:'Aucun',level:'debutant',sets:2,reps:null,rest:30,kcal:2,muscles:'Fléchisseurs hanche, quadriceps',tips:'En fente basse, genou arrière au sol. Pousse les hanches vers l\'avant. Tiens 30 sec.'},
+  {id:84,name:'Pigeon au sol',cat:'Mobilité',equip:'Aucun',level:'intermediaire',sets:2,reps:null,rest:30,kcal:2,muscles:'Fessiers, piriforme, hanche',tips:'Au sol, une jambe pliée devant, l\'autre tendue derrière. Panche le buste en avant.'},
+  {id:85,name:'World\'s greatest stretch',cat:'Mobilité',equip:'Aucun',level:'intermediaire',sets:2,reps:8,rest:30,kcal:4,muscles:'Corps entier, mobilité globale',tips:'Fente avant, main intérieure au sol, tourne l\'autre bras vers le plafond. Alterne.'},
+  {id:86,name:'Rotations thoraciques',cat:'Mobilité',equip:'Aucun',level:'debutant',sets:2,reps:10,rest:30,kcal:3,muscles:'Colonne thoracique, mobilité',tips:'À 4 pattes, main derrière la tête, ouvre le coude vers le plafond. Lent.'},
+  {id:87,name:'Squat profond maintenu',cat:'Mobilité',equip:'Aucun',level:'debutant',sets:2,reps:null,rest:30,kcal:3,muscles:'Hanches, chevilles, dos',tips:'Descends en squat profond, mains jointes devant, dos droit. Tiens 60 sec.'},
+  {id:88,name:'Étirement dos chaise',cat:'Mobilité',equip:'Chaise',level:'debutant',sets:2,reps:null,rest:30,kcal:2,muscles:'Grand dorsal, dos',tips:'Debout face à la chaise, mains dessus, recule et baisse le buste pour étirer le dos.'},
+  {id:89,name:'Ouverture hanche au sol',cat:'Mobilité',equip:'Aucun',level:'debutant',sets:2,reps:10,rest:30,kcal:3,muscles:'Hanches, adducteurs',tips:'Allongé sur le dos, plantes de pieds ensemble, laisse les genoux tomber sur les côtés.'},
+  {id:90,name:'Shoulder pass-through',cat:'Mobilité',equip:'Serviette',level:'debutant',sets:2,reps:10,rest:30,kcal:3,muscles:'Épaules, mobilité scapulaire',tips:'Tiens la serviette large, passe-la de devant à derrière sans plier les coudes.'},
+
+  // ── FULL BODY ────────────────────────────────────
+  {id:91,name:'Thruster bouteilles',cat:'Full Body',equip:'Bouteilles',level:'intermediaire',sets:3,reps:12,rest:75,kcal:13,muscles:'Corps entier, quadriceps, épaules',tips:'Squat avec bouteilles à hauteur épaules, en remontant pousse les bouteilles au-dessus de la tête.'},
+  {id:92,name:'Man maker',cat:'Full Body',equip:'Bouteilles',level:'avance',sets:3,reps:8,rest:120,kcal:18,muscles:'Corps entier',tips:'Pompe avec bouteilles → tirage → remonte → squat → développé. Enchaîne tout.'},
+  {id:93,name:'Deadlift bouteilles',cat:'Full Body',equip:'Bouteilles',level:'debutant',sets:3,reps:15,rest:60,kcal:9,muscles:'Ischio, lombaires, fessiers, dos',tips:'Bouteilles devant les cuisses, descends en gardant le dos plat, fais glisser le long des jambes.'},
+  {id:94,name:'Romanian deadlift',cat:'Full Body',equip:'Bouteilles',level:'intermediaire',sets:3,reps:12,rest:60,kcal:8,muscles:'Ischio-jambiers, fessiers, lombaires',tips:'Jambes quasi-tendues, penche le buste jusqu\'à sentir l\'étirement des ischio.'},
+  {id:95,name:'Kettlebell swing simulé',cat:'Full Body',equip:'Bouteilles',level:'intermediaire',sets:3,reps:15,rest:60,kcal:13,muscles:'Fessiers, ischio, dos, cardio',tips:'Deux bouteilles entre les jambes, propulse-les vers l\'avant avec les hanches. Explosif.'},
+  {id:96,name:'Turkish get-up',cat:'Full Body',equip:'Bouteilles',level:'avance',sets:2,reps:4,rest:120,kcal:12,muscles:'Corps entier, coordination, core',tips:'Allongé, bouteille tenue bras tendu, lève-toi en gardant la bouteille en l\'air. Lent.'},
+  {id:97,name:'Power clean simulé',cat:'Full Body',equip:'Bouteilles',level:'avance',sets:3,reps:8,rest:90,kcal:14,muscles:'Corps entier, explosivité',tips:'Deadlift explosif + tirage + réception en squat avec bouteilles aux épaules.'},
+
+  // ── GAINAGE AVANCÉ ──────────────────────────────
+  {id:98,name:'Gainage avec rotation',cat:'Abdos',equip:'Aucun',level:'intermediaire',sets:3,reps:10,rest:60,kcal:7,muscles:'Core, obliques, épaules',tips:'En position de planche, tourne le buste et ouvre un bras vers le plafond. Alterne.'},
+  {id:99,name:'Gainage dos',cat:'Abdos',equip:'Aucun',level:'debutant',sets:3,reps:null,rest:45,kcal:5,muscles:'Fessiers, ischio, core postérieur',tips:'Allongé sur le dos, bras le long du corps, monte les hanches en pont et tiens la position.'},
+  {id:100,name:'Planche avec toucher d\'épaule',cat:'Abdos',equip:'Aucun',level:'intermediaire',sets:3,reps:12,rest:60,kcal:8,muscles:'Core, épaules, anti-rotation',tips:'En planche haute, touche l\'épaule opposée avec une main. Garde les hanches stables.'},
+  {id:101,name:'Planche avec sac à dos',cat:'Abdos',equip:'Sac',level:'avance',sets:3,reps:null,rest:60,kcal:8,muscles:'Core, stabilisation',tips:'Mets un sac rempli de livres sur le dos pendant la planche pour augmenter la résistance.'},
+  {id:102,name:'Ab wheel chaise',cat:'Abdos',equip:'Chaise',level:'avance',sets:3,reps:8,rest:90,kcal:11,muscles:'Core entier, grand dorsal',tips:'À genoux, mains sur le bord d\'une chaise, pousse-la vers l\'avant en gardant le dos droit.'},
+  {id:103,name:'Relevé de bassin',cat:'Abdos',equip:'Aucun',level:'debutant',sets:3,reps:15,rest:45,kcal:5,muscles:'Abdos bas, fléchisseurs hanche',tips:'Allongé, jambes à la verticale, pousse les fesses vers le plafond. Mouvement court et contrôlé.'},
+  {id:104,name:'Windshield wiper',cat:'Abdos',equip:'Aucun',level:'avance',sets:3,reps:10,rest:75,kcal:9,muscles:'Obliques, core profond',tips:'Allongé, jambes à la verticale, bascule de droite à gauche sans toucher le sol.'},
+  {id:105,name:'Deadbug',cat:'Abdos',equip:'Aucun',level:'debutant',sets:3,reps:10,rest:45,kcal:5,muscles:'Core transverse, stabilisation',tips:'Allongé, bras et jambes en l\'air, descends bras droit + jambe gauche sans creuser le dos. Alterne.'},
 ];
-const corrections = ['Garde le dos bien droit !','Genoux dans l\'axe des pieds !','Descends plus bas — jusqu\'à 90° !','Rentre le ventre !','Expire sur l\'effort.'];
+
+// Programme généré dynamiquement selon profil
+let exercises = [];
+let sessionProgramIndex = 0; // quel programme de la semaine
+
+function generateProgram() {
+  const level = profile.niveau || 'intermediaire';
+  const obj = profile.objectif || 'perte';
+  
+  // Filtrer par niveau
+  const filtered = ALL_EXERCISES.filter(e => {
+    if(level === 'debutant') return e.level === 'debutant';
+    if(level === 'intermediaire') return e.level !== 'avance';
+    return true; // avancé = tout
+  });
+
+  // Sélection selon objectif et type de séance
+  const programs = {
+    perte: [
+      // Séance 1 — Full body brûle-graisses
+      [72,1,25,50,12,57,35,20],
+      // Séance 2 — Cardio HIIT
+      [77,21,73,56,79,58,19,80],
+      // Séance 3 — Renforcement musculation
+      [16,29,37,63,66,13,53,98],
+      // Séance 4 — Jambes & fessiers
+      [3,5,7,14,15,17,54,99],
+    ],
+    muscle: [
+      [25,27,28,35,37,63,65,50],
+      [1,4,16,12,13,14,62,98],
+      [43,45,46,66,70,37,49,50],
+      [91,93,94,63,65,35,54,100],
+    ],
+    cardio: [
+      [72,77,21,79,80,57,75,20],
+      [73,76,78,81,55,52,35,50],
+      [3,7,74,70,56,59,98,104],
+      [91,95,80,72,21,57,50,99],
+    ],
+    forme: [
+      [1,25,35,50,63,12,52,82],
+      [4,26,37,51,65,13,53,85],
+      [16,29,43,60,66,14,54,88],
+      [91,73,35,50,63,12,57,90],
+    ],
+  };
+
+  const planList = programs[obj] || programs.forme;
+  const sessionIdx = sessionProgramIndex % planList.length;
+  const ids = planList[sessionIdx];
+  sessionProgramIndex++;
+  
+  // Récupère les exercices correspondants
+  exercises = ids.map(id => ALL_EXERCISES.find(e => e.id === id)).filter(Boolean).slice(0, 6);
+  
+  // Adapte les séries au niveau
+  exercises = exercises.map(e => ({
+    ...e,
+    sets: level === 'debutant' ? Math.max(2, e.sets - 1) : level === 'avance' ? e.sets + 1 : e.sets,
+    reps: e.reps ? (level === 'debutant' ? Math.max(6, e.reps - 3) : level === 'avance' ? e.reps + 3 : e.reps) : null,
+  }));
+}
+
+const corrections = [
+  'Garde le dos bien droit !',
+  'Genoux dans l\'axe des pieds !',
+  'Descends plus bas — jusqu\'à 90° !',
+  'Rentre le ventre, stabilise le gainage !',
+  'Expire sur l\'effort, inspire en descente.',
+  'Amplitude complète sur ce mouvement !',
+  'Contrôle la phase excentrique (descente) !',
+  'Omoplate serrées, épaules basses !',
+  'Ne bloque pas ta respiration !',
+  'Poids sur les talons, pas les orteils !',
+];
 
 // ════════════════════════════════════════
 // ROUTING
@@ -995,13 +1194,16 @@ function obBack(step) {
 
 function finishOnboarding() {
   document.getElementById('em-poids').value = profile.poids;
+  generateProgram();
   seedDemoData();
   buildExoList(); updateProgress(); sessionStartTime = Date.now();
-  document.getElementById('nav-exo-info').innerHTML = `<span style="font-weight:500">${exercises[0].name}</span> <span style="background:var(--s2);padding:2px 8px;border-radius:20px;border:1px solid var(--border);font-size:11px">Série 1/${exercises[0].sets}</span>`;
+  const firstExo = exercises[0];
+  document.getElementById('nav-exo-info').innerHTML = `<span style="font-weight:500">${firstExo.name}</span> <span style="background:var(--s2);padding:2px 8px;border-radius:20px;border:1px solid var(--border);font-size:11px">Série 1/${firstExo.sets}</span>`;
   document.getElementById('btn-end-s').style.display = '';
   goTo('app');
-  setTimeout(() => coachMsg(`Salut ${profile.prenom || ''} ! 👋 Programme généré — ${profile.freq} séances/sem, déficit **${profile.deficit} kcal/j**. On commence par les **squats** — 4 séries de 12 reps. Active ta caméra !`), 800);
-  // Init nutrition chat
+  const equip = [...new Set(exercises.map(e=>e.equip).filter(e=>e!=='Aucun'))];
+  const equipStr = equip.length ? `Équipement : **${equip.join(', ')}**. ` : 'Aucun équipement nécessaire. ';
+  setTimeout(() => coachMsg(`Salut ${profile.prenom || ''} ! 👋 Programme **${profile.objectif==='perte'?'Perte de poids':profile.objectif==='muscle'?'Muscle':'Cardio'}** généré — ${exercises.length} exercices, déficit **${profile.deficit} kcal/j**. ${equipStr}On commence par **${firstExo.name}** — ${firstExo.sets} séries${firstExo.reps?` de ${firstExo.reps} reps`:' de 30 sec'}. Active ta caméra !`), 800);
   setTimeout(() => nutrCoachMsg('Salut ! Je suis ton coach nutrition. Prends ton plat en photo et je t\'analyse ça en secondes — calories, macros, et verdict sèche. 📸'), 1000);
 }
 
@@ -1158,7 +1360,10 @@ function nextExo() {
   currentExo++; currentSet=1; reps=0;
   if(currentExo>=exercises.length){ openEnd(); return; }
   buildExoList(); updateProgress(); updateNavExoInfo();
-  coachMsg(`Super boulot ! On passe aux **${exercises[currentExo].name}** — ${exercises[currentExo].sets} séries. Prends ta position !`);
+  const e=exercises[currentExo];
+  const equipMsg = e.equip && e.equip!=='Aucun' ? ` Tu as besoin de : **${e.equip}**.` : '';
+  const tipsMsg = e.tips ? ` Conseil : ${e.tips}` : '';
+  coachMsg(`Super boulot ! On passe aux **${e.name}** — ${e.sets} séries.${equipMsg}${tipsMsg} Prends ta position !`);
   setTimeout(()=>{ document.getElementById('rep-val').textContent=0; reps=0; startTimer(45); startAnalysis(); },3000);
 }
 function updateNavExoInfo() {
@@ -1183,7 +1388,18 @@ function buildExoList(){
   document.getElementById('exo-list').innerHTML=exercises.map((e,i)=>{
     const cls=i<currentExo?'done':i===currentExo?'active':'';
     const dot=i<currentExo?'done':i===currentExo?'active':'todo';
-    return `<div class="exo-item ${cls}"><div class="exo-dot ${dot}"></div><span class="exo-nm">${e.name}</span><span class="exo-sets">${e.reps?`${e.sets}×${e.reps}`:`${e.sets}×30s`}</span></div>`;
+    const equipBadge = e.equip && e.equip!=='Aucun' ? `<span style="font-size:10px;background:rgba(74,158,255,.12);color:var(--blue);padding:1px 6px;border-radius:10px;margin-left:4px">${e.equip}</span>` : '';
+    const setsInfo = e.reps ? `${e.sets}×${e.reps}` : `${e.sets}×30s`;
+    return `<div class="exo-item ${cls}" title="${e.tips||''}">
+      <div class="exo-dot ${dot}"></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+          <span class="exo-nm">${e.name}</span>${equipBadge}
+        </div>
+        ${i===currentExo&&e.muscles?`<div style="font-size:10px;color:var(--t3);margin-top:1px">${e.muscles}</div>`:''}
+      </div>
+      <span class="exo-sets">${setsInfo}</span>
+    </div>`;
   }).join('');
 }
 function updateProgress(){const p=Math.round(currentExo/exercises.length*100);document.getElementById('prog-fill').style.width=p+'%';document.getElementById('prog-pct').textContent=p+'%';}
