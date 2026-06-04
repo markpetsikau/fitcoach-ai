@@ -899,13 +899,16 @@ function showPoseScreen(exo, onReady) {
   // Annonce vocale coach
   coachMsg(`Prochain exercice : **${exo.n}** — ${exo.s} séries × ${exo.r ? exo.r+' reps' : '30 sec'}. ${pose.desc} Tu as ${secs} secondes pour te préparer !`);
 
+  const RING_R = 34; // doit correspondre au r du SVG
+  const RING_C = 2 * Math.PI * RING_R;
+
   clearInterval(poseCountdown);
   poseCountdown = setInterval(() => {
     countdown--;
     const el = document.getElementById('pose-count');
     if(el) el.textContent = countdown;
     const ring = document.getElementById('pose-ring');
-    if(ring) ring.style.strokeDashoffset = (2 * Math.PI * 54) * (1 - countdown/secs);
+    if(ring) ring.style.strokeDashoffset = RING_C * (countdown / secs);
 
     if(countdown <= 0) {
       clearInterval(poseCountdown);
@@ -917,30 +920,929 @@ function showPoseScreen(exo, onReady) {
 
 function buildPoseHTML(exo, pose, secs) {
   const circum = 2 * Math.PI * 54;
+  const animSVG = getExoAnimation(exo.n);
   return `
-    <div style="font-size:11px;font-family:var(--fm);color:var(--ac);text-transform:uppercase;letter-spacing:.1em">Prochain exercice</div>
-    <div style="font-family:var(--fd);font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--tx)">${pose.emoji} ${exo.n}</div>
-    <div style="background:var(--s2);border:1px solid var(--b2);border-radius:14px;padding:16px 24px;max-width:360px">
-      <div style="font-size:14px;color:var(--tx);line-height:1.6;margin-bottom:8px">${pose.desc}</div>
-      <div style="font-size:12px;color:var(--ac)">💡 ${pose.tips}</div>
-    </div>
-    <div style="display:flex;gap:16px;align-items:center">
-      <div style="background:var(--s2);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--t2)">⏱ ${exo.s} séries × ${exo.r ? exo.r+' reps' : '30 sec'}</div>
-      <div style="background:var(--s2);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--t2)">💪 ${exo.m}</div>
-    </div>
-    <div style="position:relative;width:120px;height:120px">
-      <svg width="120" height="120" viewBox="0 0 120 120" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">
-        <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/>
-        <circle id="pose-ring" cx="60" cy="60" r="54" fill="none" stroke="var(--ac)" stroke-width="6" stroke-linecap="round"
-          stroke-dasharray="${circum}" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear"/>
-      </svg>
-      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-        <div id="pose-count" style="font-size:36px;font-weight:700;font-family:var(--fm);color:var(--tx)">${secs}</div>
-        <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.07em">sec</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;max-width:880px;width:100%">
+      <!-- LEFT: Infos exercice -->
+      <div style="display:flex;flex-direction:column;gap:14px;text-align:left">
+        <div style="font-size:11px;font-family:var(--fm);color:var(--ac);text-transform:uppercase;letter-spacing:.1em">Prochain exercice</div>
+        <div style="font-family:var(--fd);font-size:26px;font-weight:800;letter-spacing:-1px;color:var(--tx)">${pose.emoji} ${exo.n}</div>
+        <div style="background:var(--s2);border:1px solid var(--b2);border-radius:14px;padding:16px 20px">
+          <div style="font-size:13px;color:var(--tx);line-height:1.65;margin-bottom:10px">${pose.desc}</div>
+          <div style="font-size:12px;color:var(--ac);display:flex;align-items:center;gap:6px">💡 ${pose.tips}</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="background:var(--s2);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--t2)">⏱ ${exo.s} séries × ${exo.r ? exo.r+' reps' : '30 sec'}</div>
+          <div style="background:var(--s2);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--t2)">💪 ${exo.m}</div>
+        </div>
+        <!-- Countdown -->
+        <div style="display:flex;align-items:center;gap:16px;margin-top:4px">
+          <div style="position:relative;width:80px;height:80px;flex-shrink:0">
+            <svg width="80" height="80" viewBox="0 0 80 80" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="5"/>
+              <circle id="pose-ring" cx="40" cy="40" r="34" fill="none" stroke="var(--ac)" stroke-width="5" stroke-linecap="round"
+                stroke-dasharray="${2*Math.PI*34}" stroke-dashoffset="${2*Math.PI*34}" style="transition:stroke-dashoffset 1s linear"/>
+            </svg>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <div id="pose-count" style="font-size:26px;font-weight:700;font-family:var(--fm);color:var(--tx);line-height:1">${secs}</div>
+              <div style="font-size:10px;color:var(--t2);text-transform:uppercase">sec</div>
+            </div>
+          </div>
+          <button onclick="skipPose()" style="flex:1;background:var(--ac);border:none;color:#000;font-size:14px;font-weight:700;padding:12px 20px;border-radius:100px;cursor:pointer;font-family:var(--f)">Je suis prêt →</button>
+        </div>
+      </div>
+      <!-- RIGHT: Avatar IA animé -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+        <div style="font-size:11px;font-family:var(--fm);color:var(--blue);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:6px">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--blue);animation:pulse 1s infinite"></div>
+          Démo IA en direct
+        </div>
+        <div style="background:var(--s2);border:1px solid var(--b2);border-radius:20px;padding:16px;width:240px;height:340px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+          <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 80% at 50% 100%,rgba(200,245,90,.04),transparent)"></div>
+          ${animSVG}
+        </div>
+        <div style="font-size:12px;color:var(--t2);text-align:center;max-width:200px">Observe et reproduis le mouvement</div>
       </div>
     </div>
-    <button onclick="skipPose()" style="background:var(--s2);border:1px solid var(--b2);color:var(--t2);font-size:13px;padding:8px 20px;border-radius:100px;cursor:pointer">Je suis prêt →</button>
   `;
+}
+
+// ─── ANIMATIONS SVG IA PAR EXERCICE ─────────────
+function getExoAnimation(name) {
+  const anims = {
+    'Squat classique': squatAnim(),
+    'Squat sauté': squatAnim(true),
+    'Squat sumo': sumoSquatAnim(),
+    'Fentes avant': lungAnim(),
+    'Fentes latérales': lungAnim(),
+    'Pompes classiques': pushupAnim(),
+    'Pompes larges': pushupAnim(),
+    'Pompes serrées': pushupAnim(),
+    'Gainage planche': plankAnim(),
+    'Gainage latéral': plankAnim(true),
+    'Mountain climbers': mountainAnim(),
+    'Burpee': burpeeAnim(),
+    'Pont fessier': bridgeAnim(),
+    'Donkey kicks': donkeyAnim(),
+    'Superman': supermanAnim(),
+    'Crunch classique': crunchAnim(),
+    'Russian twist': crunchAnim(true),
+    'Relevé de jambes': legRaiseAnim(),
+    'V-up': legRaiseAnim(),
+    'Jumping jacks': jjAnim(),
+    'Skater sauts': skaterAnim(),
+    'Step-up chaise': stepupAnim(),
+    'Tirage bouteilles': rowAnim(),
+    'Curl biceps': curlAnim(),
+    'Dips sur chaise': dipsAnim(),
+    'Élévations latérales': lateralAnim(),
+    'Développé militaire': pressAnim(),
+    'Mollets debout': calvesAnim(),
+    'Cat-cow': catcowAnim(),
+    'Hip flexor stretch': hipAnim(),
+  };
+  return anims[name] || defaultAnim();
+}
+
+// Couleurs communes
+const C = {
+  body:'#c8f55a', joint:'#c8f55a', shadow:'rgba(200,245,90,.3)',
+  line:'rgba(200,245,90,.8)', head:'#c8f55a'
+};
+
+function squatAnim(jump=false) {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs>
+    <filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <style>
+      .s-body{stroke:${C.body};stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}
+      .s-joint{fill:${C.joint};filter:url(#glow2)}
+    </style>
+  </defs>
+  <!-- Sol -->
+  <line x1="20" y1="270" x2="180" y2="270" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Tête -->
+  <circle class="s-joint" r="14" cx="100" cy="40">
+    <animate attributeName="cy" values="40;55;40" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Corps -->
+  <line class="s-body" x1="100" y1="54" x2="100" y2="130">
+    <animate attributeName="y2" values="130;160;130" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y1" values="54;69;54" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Épaules -->
+  <line class="s-body" x1="70" y1="80" x2="130" y2="80">
+    <animate attributeName="y1" values="80;95;80" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="80;95;80" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras G -->
+  <line class="s-body" x1="70" y1="80" x2="55" y2="130">
+    <animate attributeName="y1" values="80;95;80" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="130;150;130" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="55;60;55" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras D -->
+  <line class="s-body" x1="130" y1="80" x2="145" y2="130">
+    <animate attributeName="y1" values="80;95;80" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="130;150;130" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="145;140;145" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Hanches -->
+  <line class="s-body" x1="80" y1="130" x2="120" y2="130">
+    <animate attributeName="y1" values="130;160;130" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="130;160;130" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Cuisse G -->
+  <line class="s-body" x1="80" y1="130" x2="65" y2="200">
+    <animate attributeName="y1" values="130;160;130" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="65;55;65" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Cuisse D -->
+  <line class="s-body" x1="120" y1="130" x2="135" y2="200">
+    <animate attributeName="y1" values="130;160;130" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="135;145;135" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambe G bas -->
+  <line class="s-body" x1="65" y1="200" x2="60" y2="265">
+    <animate attributeName="y1" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="65;55;65" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambe D bas -->
+  <line class="s-body" x1="135" y1="200" x2="140" y2="265">
+    <animate attributeName="y1" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="135;145;135" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Joints genoux -->
+  <circle class="s-joint" r="5" cx="65" cy="200">
+    <animate attributeName="cy" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="65;55;65" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle class="s-joint" r="5" cx="135" cy="200">
+    <animate attributeName="cy" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="135;145;135" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Label angle genou -->
+  <text x="30" y="210" fill="rgba(200,245,90,.8)" font-size="11" font-family="monospace">
+    <animate attributeName="y" values="210;220;210" dur="2s" repeatCount="indefinite"/>
+    <tspan id="squat-ang">90°</tspan>
+  </text>
+  <!-- Flèche direction -->
+  <text x="88" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">↓ descends</text>
+</svg>`;
+}
+
+function pushupAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="260" x2="180" y2="260" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Corps horizontal -->
+  <circle class="s-joint" r="12" cx="160" cy="130">
+    <animate attributeName="cy" values="130;155;130" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="160;158;160" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Torse -->
+  <line class="s-body" x1="148" y1="130" x2="60" y2="150">
+    <animate attributeName="y1" values="130;155;130" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="148;146;148" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="150;155;150" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras G -->
+  <line class="s-body" x1="148" y1="130" x2="130" y2="200">
+    <animate attributeName="y1" values="130;155;130" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="148;146;148" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="200;220;200" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Avant-bras G -->
+  <line class="s-body" x1="130" y1="200" x2="115" y2="255">
+    <animate attributeName="y1" values="200;220;200" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras D -->
+  <line class="s-body" x1="60" y1="150" x2="75" y2="210">
+    <animate attributeName="y1" values="150;155;150" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="210;215;210" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Avant-bras D -->
+  <line class="s-body" x1="75" y1="210" x2="85" y2="255">
+    <animate attributeName="y1" values="210;215;210" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes -->
+  <line class="s-body" x1="60" y1="150" x2="35" y2="155">
+    <animate attributeName="y1" values="150;155;150" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="155;155;155" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Joints -->
+  <circle class="s-joint" r="4" cx="130" cy="200"><animate attributeName="cy" values="200;220;200" dur="1.5s" repeatCount="indefinite"/></circle>
+  <circle class="s-joint" r="4" cx="75" cy="210"><animate attributeName="cy" values="210;215;210" dur="1.5s" repeatCount="indefinite"/></circle>
+  <text x="60" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">coudes à 45°</text>
+</svg>`;
+}
+
+function plankAnim(side=false) {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="255" x2="180" y2="255" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="12" cx="160" cy="140"/>
+  <!-- Corps horizontal rigide -->
+  <line class="s-body" x1="148" y1="140" x2="40" y2="155"/>
+  <!-- Jambes -->
+  <line class="s-body" x1="40" y1="155" x2="30" y2="250"/>
+  <line class="s-body" x1="40" y1="155" x2="50" y2="250"/>
+  <!-- Bras coude -->
+  <line class="s-body" x1="148" y1="140" x2="135" y2="185"/>
+  <line class="s-body" x1="135" y1="185" x2="120" y2="250"/>
+  <!-- Breathing animation -->
+  <line class="s-body" x1="80" y1="148" x2="110" y2="152">
+    <animate attributeName="y1" values="148;145;148" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="152;149;152" dur="3s" repeatCount="indefinite"/>
+  </line>
+  <circle class="s-joint" r="4" cx="135" cy="185"/>
+  <text x="55" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">corps rigide 🔒</text>
+</svg>`;
+}
+
+function lungAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Tête -->
+  <circle class="s-joint" r="13" cx="100" cy="40">
+    <animate attributeName="cy" values="40;50;40" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Torse -->
+  <line class="s-body" x1="100" y1="53" x2="100" y2="140">
+    <animate attributeName="y1" values="53;63;53" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="140;155;140" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Épaules -->
+  <line class="s-body" x1="72" y1="80" x2="128" y2="80">
+    <animate attributeName="y1" values="80;90;80" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="80;90;80" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras -->
+  <line class="s-body" x1="72" y1="80" x2="58" y2="125"><animate attributeName="y1" values="80;90;80" dur="2s" repeatCount="indefinite"/></line>
+  <line class="s-body" x1="128" y1="80" x2="142" y2="125"><animate attributeName="y1" values="80;90;80" dur="2s" repeatCount="indefinite"/></line>
+  <!-- Hanches -->
+  <line class="s-body" x1="82" y1="140" x2="118" y2="140">
+    <animate attributeName="y1" values="140;155;140" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="140;155;140" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambe avant -->
+  <line class="s-body" x1="118" y1="140" x2="135" y2="200">
+    <animate attributeName="y1" values="140;155;140" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="135;145;135" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="200;210;200" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="135" y1="200" x2="140" y2="260">
+    <animate attributeName="y1" values="200;210;200" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="135;145;135" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambe arrière -->
+  <line class="s-body" x1="82" y1="140" x2="65" y2="195">
+    <animate attributeName="y1" values="140;155;140" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="195;200;195" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="65" y1="195" x2="60" y2="260">
+    <animate attributeName="y1" values="195;200;195" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <circle class="s-joint" r="5" cx="135" cy="200"><animate attributeName="cy" values="200;210;200" dur="2s" repeatCount="indefinite"/><animate attributeName="cx" values="135;145;135" dur="2s" repeatCount="indefinite"/></circle>
+  <text x="50" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">genou à 90°</text>
+</svg>`;
+}
+
+function bridgeAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="260" x2="180" y2="260" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Tête allongée -->
+  <circle class="s-joint" r="13" cx="155" cy="210"/>
+  <!-- Corps -->
+  <line class="s-body" x1="142" y1="210" x2="90" y2="175">
+    <animate attributeName="y2" values="175;155;175" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Épaules au sol -->
+  <line class="s-body" x1="142" y1="210" x2="115" y2="250"/>
+  <!-- Hanches levées -->
+  <line class="s-body" x1="90" y1="175" x2="60" y2="210">
+    <animate attributeName="y1" values="175;155;175" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="210;200;210" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes -->
+  <line class="s-body" x1="60" y1="210" x2="45" y2="255">
+    <animate attributeName="y1" values="210;200;210" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="60" y1="210" x2="80" y2="255">
+    <animate attributeName="y1" values="210;200;210" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Hanches joint -->
+  <circle class="s-joint" r="6" cx="90" cy="175">
+    <animate attributeName="cy" values="175;155;175" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Flèche hanches -->
+  <text x="95" y="145" fill="rgba(200,245,90,.7)" font-size="18">↑</text>
+  <text x="50" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">serre les fessiers</text>
+</svg>`;
+}
+
+function crunchAnim(twist=false) {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Corps allongé, tête qui monte -->
+  <circle class="s-joint" r="13" cx="155" cy="170">
+    <animate attributeName="cy" values="170;140;170" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="155;${twist?'140':'155'};155" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Torse -->
+  <line class="s-body" x1="142" y1="170" x2="80" y2="180">
+    <animate attributeName="y1" values="170;142;170" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="142;${twist?'128':'142'};142" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes pliées -->
+  <line class="s-body" x1="80" y1="180" x2="55" y2="210"/>
+  <line class="s-body" x1="55" y1="210" x2="40" y2="255"/>
+  <line class="s-body" x1="80" y1="180" x2="70" y2="215"/>
+  <line class="s-body" x1="70" y1="215" x2="55" y2="255"/>
+  <!-- Bras derrière tête -->
+  <line class="s-body" x1="142" y1="170" x2="160" y2="155">
+    <animate attributeName="y1" values="170;142;170" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="142;${twist?'128':'142'};142" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <circle class="s-joint" r="5" cx="55" cy="210"/>
+  <text x="60" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">${twist?'rotation buste':'ne tire pas le cou'}</text>
+</svg>`;
+}
+
+function legRaiseAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="150" cy="200"/>
+  <line class="s-body" x1="137" y1="200" x2="70" y2="210"/>
+  <!-- Jambes qui montent -->
+  <line class="s-body" x1="70" y1="210" x2="50" y2="175">
+    <animate attributeName="x2" values="50;80;50" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="175;130;175" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="70" y1="210" x2="65" y2="170">
+    <animate attributeName="x2" values="65;95;65" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="170;120;170" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras -->
+  <line class="s-body" x1="137" y1="200" x2="145" y2="245"/>
+  <text x="55" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">dos plaqué au sol</text>
+</svg>`;
+}
+
+function mountainAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="260" x2="180" y2="260" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Corps en planche haute -->
+  <circle class="s-joint" r="12" cx="155" cy="120"/>
+  <line class="s-body" x1="143" y1="120" x2="55" y2="150"/>
+  <!-- Jambes alternantes -->
+  <line class="s-body" x1="55" y1="150" x2="40" y2="255"/>
+  <line class="s-body" x1="55" y1="150" x2="70" y2="255"/>
+  <!-- Genou qui remonte alternativement -->
+  <line class="s-body" x1="55" y1="150" x2="72" y2="200">
+    <animate attributeName="x2" values="72;90;72;55;72" dur="1s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="200;175;200;255;200" dur="1s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras -->
+  <line class="s-body" x1="143" y1="120" x2="130" y2="185"/>
+  <line class="s-body" x1="130" y1="185" x2="115" y2="255"/>
+  <line class="s-body" x1="143" y1="120" x2="160" y2="175"/>
+  <line class="s-body" x1="160" y1="175" x2="165" y2="255"/>
+  <circle class="s-joint" r="5" cx="130" cy="185"/>
+  <text x="40" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">alterné rapidement</text>
+</svg>`;
+}
+
+function supermanAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="210" x2="180" y2="210" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Corps ventre au sol -->
+  <circle class="s-joint" r="12" cx="160" cy="165">
+    <animate attributeName="cy" values="165;150;165" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <line class="s-body" x1="148" y1="165" x2="60" y2="175">
+    <animate attributeName="y1" values="165;150;165" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="175;165;175" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras tendus qui montent -->
+  <line class="s-body" x1="148" y1="165" x2="170" y2="145">
+    <animate attributeName="y1" values="165;150;165" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="145;125;145" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="148" y1="165" x2="125" y2="145">
+    <animate attributeName="y1" values="165;150;165" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="145;125;145" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes qui montent -->
+  <line class="s-body" x1="60" y1="175" x2="40" y2="165">
+    <animate attributeName="y2" values="165;145;165" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y1" values="175;165;175" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="60" y1="175" x2="45" y2="180">
+    <animate attributeName="y2" values="180;160;180" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y1" values="175;165;175" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <text x="55" y="250" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">bras et jambes ensemble</text>
+</svg>`;
+}
+
+function jjAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="100" cy="40"/>
+  <line class="s-body" x1="100" y1="53" x2="100" y2="140"/>
+  <line class="s-body" x1="75" y1="80" x2="125" y2="80"/>
+  <!-- Bras qui montent/descendent -->
+  <line class="s-body" x1="75" y1="80" x2="45" y2="100">
+    <animate attributeName="x2" values="45;30;45" dur=".8s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="100;60;100" dur=".8s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="125" y1="80" x2="155" y2="100">
+    <animate attributeName="x2" values="155;170;155" dur=".8s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="100;60;100" dur=".8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes qui s'écartent -->
+  <line class="s-body" x1="88" y1="140" x2="65" y2="230">
+    <animate attributeName="x2" values="65;45;65" dur=".8s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="112" y1="140" x2="135" y2="230">
+    <animate attributeName="x2" values="135;155;135" dur=".8s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="88" y1="140" x2="112" y2="140"/>
+  <text x="50" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">rythme régulier</text>
+</svg>`;
+}
+
+function curlAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="100" cy="40"/>
+  <line class="s-body" x1="100" y1="53" x2="100" y2="150"/>
+  <line class="s-body" x1="75" y1="80" x2="125" y2="80"/>
+  <!-- Bras droit fixe -->
+  <line class="s-body" x1="125" y1="80" x2="140" y2="150"/>
+  <line class="s-body" x1="140" y1="150" x2="145" y2="210"/>
+  <!-- Bras gauche qui curl -->
+  <line class="s-body" x1="75" y1="80" x2="60" y2="150"/>
+  <line class="s-body" x1="60" y1="150" x2="55" y2="210">
+    <animate attributeName="y2" values="210;140;210" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="55;75;55" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bouteille -->
+  <circle class="s-joint" r="6" cx="55" cy="215">
+    <animate attributeName="cy" values="215;145;215" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="55;75;55" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle class="s-joint" r="5" cx="60" cy="150"/>
+  <!-- Jambes -->
+  <line class="s-body" x1="88" y1="150" x2="75" y2="260"/>
+  <line class="s-body" x1="112" y1="150" x2="125" y2="260"/>
+  <line class="s-body" x1="88" y1="150" x2="112" y2="150"/>
+  <text x="50" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">coude fixe</text>
+</svg>`;
+}
+
+function dipsAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <!-- Chaise -->
+  <rect x="120" y="160" width="60" height="8" fill="rgba(200,245,90,.3)" rx="2"/>
+  <line x1="125" y1="168" x2="125" y2="200" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <line x1="175" y1="168" x2="175" y2="200" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="80" cy="120">
+    <animate attributeName="cy" values="120;145;120" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Corps -->
+  <line class="s-body" x1="80" y1="133" x2="80" y2="200">
+    <animate attributeName="y1" values="133;158;133" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras sur chaise -->
+  <line class="s-body" x1="67" y1="155" x2="120" y2="163">
+    <animate attributeName="y1" values="155;168;155" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="93" y1="155" x2="130" y2="163">
+    <animate attributeName="y1" values="155;168;155" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes -->
+  <line class="s-body" x1="80" y1="200" x2="55" y2="260">
+    <animate attributeName="y1" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="80" y1="200" x2="100" y2="260">
+    <animate attributeName="y1" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <text x="30" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">coudes derrière</text>
+</svg>`;
+}
+
+function rowAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="150" cy="80"/>
+  <!-- Corps penché -->
+  <line class="s-body" x1="137" y1="80" x2="75" y2="140"/>
+  <line class="s-body" x1="75" y1="140" x2="55" y2="260"/>
+  <line class="s-body" x1="75" y1="140" x2="95" y2="260"/>
+  <!-- Bras qui tire -->
+  <line class="s-body" x1="137" y1="80" x2="120" y2="130">
+    <animate attributeName="y2" values="130;115;130" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="120;130;120" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="120" y1="130" x2="100" y2="165">
+    <animate attributeName="y1" values="130;115;130" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="120;130;120" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="165;145;165" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="100;115;100" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bouteille -->
+  <circle class="s-joint" r="6" cx="100" cy="170">
+    <animate attributeName="cy" values="170;150;170" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="100;115;100" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Bras fixe -->
+  <line class="s-body" x1="137" y1="80" x2="155" y2="145"/>
+  <line class="s-body" x1="155" y1="145" x2="165" y2="200"/>
+  <text x="30" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">coude haut</text>
+</svg>`;
+}
+
+function lateralAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="100" cy="40"/>
+  <line class="s-body" x1="100" y1="53" x2="100" y2="150"/>
+  <line class="s-body" x1="75" y1="80" x2="125" y2="80"/>
+  <!-- Bras qui montent latéralement -->
+  <line class="s-body" x1="75" y1="80" x2="40" y2="120">
+    <animate attributeName="x2" values="40;25;40" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="120;80;120" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="125" y1="80" x2="160" y2="120">
+    <animate attributeName="x2" values="160;175;160" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="120;80;120" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bouteilles -->
+  <circle class="s-joint" r="5" cx="40" cy="122">
+    <animate attributeName="cx" values="40;25;40" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="122;82;122" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle class="s-joint" r="5" cx="160" cy="122">
+    <animate attributeName="cx" values="160;175;160" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="122;82;122" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Jambes -->
+  <line class="s-body" x1="88" y1="150" x2="75" y2="260"/>
+  <line class="s-body" x1="112" y1="150" x2="125" y2="260"/>
+  <line class="s-body" x1="88" y1="150" x2="112" y2="150"/>
+  <text x="40" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">jusqu'à l'horizontal</text>
+</svg>`;
+}
+
+function pressAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="100" cy="50"/>
+  <line class="s-body" x1="100" y1="63" x2="100" y2="155"/>
+  <line class="s-body" x1="75" y1="90" x2="125" y2="90"/>
+  <!-- Bras qui montent vers le plafond -->
+  <line class="s-body" x1="75" y1="90" x2="60" y2="115">
+    <animate attributeName="y2" values="115;50;115" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="60;70;60" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="125" y1="90" x2="140" y2="115">
+    <animate attributeName="y2" values="115;50;115" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="140;130;140" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bouteilles -->
+  <circle class="s-joint" r="6" cx="60" cy="118">
+    <animate attributeName="cy" values="118;53;118" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="60;70;60" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle class="s-joint" r="6" cx="140" cy="118">
+    <animate attributeName="cy" values="118;53;118" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="140;130;140" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Jambes -->
+  <line class="s-body" x1="88" y1="155" x2="75" y2="260"/>
+  <line class="s-body" x1="112" y1="155" x2="125" y2="260"/>
+  <line class="s-body" x1="88" y1="155" x2="112" y2="155"/>
+  <text x="45" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">bras tendus en haut</text>
+</svg>`;
+}
+
+function calvesAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="100" cy="40">
+    <animate attributeName="cy" values="40;30;40" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <line class="s-body" x1="100" y1="53" x2="100" y2="155">
+    <animate attributeName="y1" values="53;43;53" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="155;145;155" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="75" y1="85" x2="125" y2="85">
+    <animate attributeName="y1" values="85;75;85" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="85;75;85" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="75" y1="85" x2="55" y2="130"><animate attributeName="y1" values="85;75;85" dur="1.5s" repeatCount="indefinite"/></line>
+  <line class="s-body" x1="125" y1="85" x2="145" y2="130"><animate attributeName="y1" values="85;75;85" dur="1.5s" repeatCount="indefinite"/></line>
+  <line class="s-body" x1="88" y1="155" x2="75" y2="230">
+    <animate attributeName="y1" values="155;145;155" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="112" y1="155" x2="125" y2="230">
+    <animate attributeName="y1" values="155;145;155" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Pieds sur pointes -->
+  <line class="s-body" x1="75" y1="230" x2="65" y2="260">
+    <animate attributeName="x2" values="65;75;65" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="260;250;260" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="125" y1="230" x2="135" y2="260">
+    <animate attributeName="x2" values="135;125;135" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="260;250;260" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="88" y1="155" x2="112" y2="155">
+    <animate attributeName="y1" values="155;145;155" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="155;145;155" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <text x="45" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">monte sur les pointes</text>
+</svg>`;
+}
+
+function catcowAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- À 4 pattes, dos qui s'arrondit/se creuse -->
+  <circle class="s-joint" r="12" cx="155" cy="140">
+    <animate attributeName="cy" values="140;155;140" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Dos -->
+  <path d="M 143 140 Q 100 120 60 140" fill="none" stroke="#c8f55a" stroke-width="3" stroke-linecap="round" filter="url(#glow2)">
+    <animate attributeName="d" values="M 143 140 Q 100 120 60 140;M 143 155 Q 100 175 60 155;M 143 140 Q 100 120 60 140" dur="2s" repeatCount="indefinite"/>
+  </path>
+  <!-- Bras -->
+  <line class="s-body" x1="143" y1="140" x2="130" y2="200">
+    <animate attributeName="y1" values="140;155;140" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="60" y1="140" x2="50" y2="200">
+    <animate attributeName="y1" values="140;155;140" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Genoux -->
+  <line class="s-body" x1="143" y1="140" x2="155" y2="200">
+    <animate attributeName="y1" values="140;155;140" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="60" y1="140" x2="70" y2="200">
+    <animate attributeName="y1" values="140;155;140" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <circle class="s-joint" r="5" cx="60" cy="140"><animate attributeName="cy" values="140;155;140" dur="2s" repeatCount="indefinite"/></circle>
+  <text x="40" y="240" fill="rgba(200,245,90,.7)" font-size="12">CAT 🐱</text>
+  <text x="40" y="255" fill="rgba(200,245,90,.4)" font-size="12">COW 🐄</text>
+</svg>`;
+}
+
+function sumoSquatAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="100" cy="40">
+    <animate attributeName="cy" values="40;55;40" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <line class="s-body" x1="100" y1="53" x2="100" y2="140">
+    <animate attributeName="y1" values="53;68;53" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="140;158;140" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Épaules larges -->
+  <line class="s-body" x1="65" y1="80" x2="135" y2="80">
+    <animate attributeName="y1" values="80;95;80" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="80;95;80" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras devant -->
+  <line class="s-body" x1="65" y1="80" x2="85" y2="130">
+    <animate attributeName="y1" values="80;95;80" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="130;148;130" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="135" y1="80" x2="115" y2="130">
+    <animate attributeName="y1" values="80;95;80" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="130;148;130" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Hanches -->
+  <line class="s-body" x1="75" y1="140" x2="125" y2="140">
+    <animate attributeName="y1" values="140;158;140" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="140;158;140" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes très écartées -->
+  <line class="s-body" x1="75" y1="140" x2="45" y2="200">
+    <animate attributeName="y1" values="140;158;140" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="45" y1="200" x2="35" y2="260">
+    <animate attributeName="y1" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="125" y1="140" x2="155" y2="200">
+    <animate attributeName="y1" values="140;158;140" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="155" y1="200" x2="165" y2="260">
+    <animate attributeName="y1" values="200;215;200" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <circle class="s-joint" r="5" cx="45" cy="200"><animate attributeName="cy" values="200;215;200" dur="2s" repeatCount="indefinite"/></circle>
+  <circle class="s-joint" r="5" cx="155" cy="200"><animate attributeName="cy" values="200;215;200" dur="2s" repeatCount="indefinite"/></circle>
+  <text x="35" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">pieds très écartés</text>
+</svg>`;
+}
+
+function donkeyAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="255" x2="180" y2="255" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="12" cx="155" cy="130"/>
+  <line class="s-body" x1="143" y1="130" x2="60" y2="140"/>
+  <!-- Bras -->
+  <line class="s-body" x1="143" y1="130" x2="130" y2="190"/>
+  <line class="s-body" x1="60" y1="140" x2="50" y2="200"/>
+  <!-- Jambe au sol -->
+  <line class="s-body" x1="60" y1="140" x2="75" y2="200"/>
+  <line class="s-body" x1="75" y1="200" x2="70" y2="250"/>
+  <!-- Jambe qui monte -->
+  <line class="s-body" x1="143" y1="130" x2="158" y2="190">
+    <animate attributeName="y2" values="190;140;190" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="158;168;158" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="158" y1="190" x2="165" y2="245">
+    <animate attributeName="y1" values="190;140;190" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="158;168;158" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="245;185;245" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="165;175;165" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Flèche haut -->
+  <text x="155" y="125" fill="rgba(200,245,90,.7)" font-size="16">↑</text>
+  <circle class="s-joint" r="5" cx="75" cy="200"/>
+  <text x="30" y="285" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">talon vers le plafond</text>
+</svg>`;
+}
+
+function stepupAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <!-- Chaise/marche -->
+  <rect x="100" y="190" width="80" height="16" fill="rgba(200,245,90,.2)" rx="3"/>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="90" cy="60">
+    <animate attributeName="cy" values="60;45;60" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <line class="s-body" x1="90" y1="73" x2="90" y2="160">
+    <animate attributeName="y1" values="73;58;73" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="160;148;160" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="68" y1="100" x2="112" y2="100">
+    <animate attributeName="y1" values="100;85;100" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="100;85;100" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="68" y1="100" x2="52" y2="145"><animate attributeName="y1" values="100;85;100" dur="2s" repeatCount="indefinite"/></line>
+  <line class="s-body" x1="112" y1="100" x2="128" y2="145"><animate attributeName="y1" values="100;85;100" dur="2s" repeatCount="indefinite"/></line>
+  <!-- Jambe qui monte sur la chaise -->
+  <line class="s-body" x1="78" y1="160" x2="60" y2="260">
+    <animate attributeName="y1" values="160;148;160" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="102" y1="160" x2="130" y2="190">
+    <animate attributeName="y1" values="160;148;160" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="190;180;190" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="130" y1="190" x2="140" y2="205"><animate attributeName="y1" values="190;180;190" dur="2s" repeatCount="indefinite"/></line>
+  <circle class="s-joint" r="5" cx="130" cy="190"><animate attributeName="cy" values="190;180;190" dur="2s" repeatCount="indefinite"/></circle>
+  <text x="25" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">pousse sur le talon</text>
+</svg>`;
+}
+
+function hipAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Fente basse, genou arrière au sol -->
+  <circle class="s-joint" r="12" cx="120" cy="60"/>
+  <line class="s-body" x1="120" y1="72" x2="100" y2="155"/>
+  <line class="s-body" x1="90" y1="95" x2="130" y2="95"/>
+  <line class="s-body" x1="90" y1="95" x2="75" y2="135"/>
+  <line class="s-body" x1="130" y1="95" x2="145" y2="135"/>
+  <!-- Jambe avant -->
+  <line class="s-body" x1="108" y1="155" x2="130" y2="210"/>
+  <line class="s-body" x1="130" y1="210" x2="140" y2="260"/>
+  <!-- Jambe arrière genou au sol -->
+  <line class="s-body" x1="92" y1="155" x2="65" y2="200"/>
+  <line class="s-body" x1="65" y1="200" x2="50" y2="255"/>
+  <!-- Hanches qui avancent -->
+  <circle class="s-joint" r="6" cx="100" cy="155">
+    <animate attributeName="cx" values="100;108;100" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="155;162;155" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle class="s-joint" r="5" cx="130" cy="210"/>
+  <circle class="s-joint" r="5" cx="65" cy="200"/>
+  <text x="30" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">hanches vers l'avant</text>
+</svg>`;
+}
+
+function skaterAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle class="s-joint" r="13" cx="100" cy="50">
+    <animate attributeName="cx" values="100;130;70;100" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="50;55;55;50" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <line class="s-body" x1="100" y1="63" x2="100" y2="155">
+    <animate attributeName="x1" values="100;130;70;100" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="100;130;70;100" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y1" values="63;68;68;63" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="155;165;165;155" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras balanciers -->
+  <line class="s-body" x1="78" y1="95" x2="55" y2="130">
+    <animate attributeName="x1" values="78;108;48;78" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="55;130;20;55" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="122" y1="95" x2="145" y2="130">
+    <animate attributeName="x1" values="122;152;92;122" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="145;70;180;145" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambe d'appui -->
+  <line class="s-body" x1="100" y1="155" x2="115" y2="220">
+    <animate attributeName="x1" values="100;130;70;100" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="115;145;85;115" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="y1" values="155;165;165;155" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <line class="s-body" x1="115" y1="220" x2="120" y2="260">
+    <animate attributeName="x1" values="115;145;85;115" dur="1.5s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="120;150;90;120" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+  <text x="40" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">amplitude max</text>
+</svg>`;
+}
+
+function burpeeAnim() {
+  return `<svg viewBox="0 0 200 300" style="width:200px;height:300px">
+  <defs><filter id="glow2"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <style>.s-body{stroke:#c8f55a;stroke-width:3;stroke-linecap:round;fill:none;filter:url(#glow2)}.s-joint{fill:#c8f55a;filter:url(#glow2)}</style></defs>
+  <line x1="20" y1="265" x2="180" y2="265" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Phase 1: debout, phase 2: en bas, phase 3: saut -->
+  <circle class="s-joint" r="13" cx="100" cy="50">
+    <animate attributeName="cy" values="50;200;150;30;50" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.3;0.6;0.8;1"/>
+  </circle>
+  <line class="s-body" x1="100" y1="63" x2="100" y2="150">
+    <animate attributeName="y1" values="63;213;163;43;63" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.3;0.6;0.8;1"/>
+    <animate attributeName="y2" values="150;240;230;130;150" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.3;0.6;0.8;1"/>
+    <animate attributeName="x1" values="100;150;100;100;100" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.3;0.6;0.8;1"/>
+    <animate attributeName="x2" values="100;80;100;100;100" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.3;0.6;0.8;1"/>
+  </line>
+  <!-- Bras -->
+  <line class="s-body" x1="80" y1="90" x2="60" y2="130">
+    <animate attributeName="y1" values="90;230;185;73;90" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.3;0.6;0.8;1"/>
+    <animate attributeName="y2" values="130;255;230;30;130" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.3;0.6;0.8;1"/>
+    <animate attributeName="x1" values="80;138;80;80;80" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.3;0.6;0.8;1"/>
+    <animate attributeName="x2" values="60;115;60;60;60" dur="2.5s" repeatCount="indefinite" keyTimes="0;0.3;0.6;0.8;1"/>
+  </line>
+  <text x="30" y="290" fill="rgba(200,245,90,.5)" font-size="11" font-family="monospace">debout→sol→saut</text>
+</svg>`;
+}
+
+function defaultAnim() {
+  return squatAnim();
 }
 
 function skipPose() {
@@ -1029,167 +1931,165 @@ function calcAngle(a,b,c) {
   return Math.round(Math.acos(Math.min(1,dot/mag))*180/Math.PI);
 }
 
-let lastKneeAngle=180,phaseSwitchCount=0;
+let repBuffer=[], phaseSwitchCount=0;
 
-function analyzePosture(lm) {
-  if(!lm||lm.length<33)return;
+function getRepConfig(name){
+  const C={
+    'Squat classique':{type:'knee',down:100,up:155},
+    'Squat sauté':{type:'knee',down:100,up:155},
+    'Squat sumo':{type:'knee',down:105,up:155},
+    'Fentes avant':{type:'knee',down:100,up:155},
+    'Fentes latérales':{type:'knee',down:110,up:155},
+    'Pompes classiques':{type:'elbow',down:80,up:155},
+    'Pompes larges':{type:'elbow',down:80,up:155},
+    'Pompes serrées':{type:'elbow',down:80,up:155},
+    'Curl biceps':{type:'elbow',down:60,up:150},
+    'Dips sur chaise':{type:'elbow',down:75,up:150},
+    'Pont fessier':{type:'hip',down:130,up:170},
+    'Crunch classique':{type:'trunk',down:25,up:60},
+    'Russian twist':{type:'trunk',down:20,up:55},
+  };
+  return C[name]||{type:'knee',down:100,up:155};
+}
+
+function analyzePosture(lm){
+  if(!lm||lm.length<33) return [];
   const errJoints=[];
+  const exoName=curExos[curExo]?.n||'';
+  const cfg=getRepConfig(exoName);
+  let mainAngle=null;
 
-  // Angle genoux (25=hip_l, 25=knee_l, 27=ankle_l)
-  if(lm[23]?.visibility>.5 && lm[25]?.visibility>.5 && lm[27]?.visibility>.5){
-    const kneeAngle = calcAngle(lm[23],lm[25],lm[27]);
-    document.getElementById('avg').textContent=kneeAngle+'°';
-    // Détection rep : descente puis remontée
-    if(kneeAngle<100 && lastKneeAngle>=100) repPhase='down';
-    if(kneeAngle>150 && repPhase==='down'){
-      repPhase='up';reps++;totalReps++;
-      document.getElementById('repn').textContent=reps;checkRep();
+  if(cfg.type==='knee'){
+    if(lm[23]?.visibility>.4&&lm[25]?.visibility>.4&&lm[27]?.visibility>.4){
+      mainAngle=calcAngle(lm[23],lm[25],lm[27]);
+      document.getElementById('avg').textContent=mainAngle+'°';
+      if(lm[25].x>lm[27].x+0.05) errJoints.push(25,26);
     }
-    if(kneeAngle<70) errJoints.push(25,26); // genoux trop fléchis
-    lastKneeAngle=kneeAngle;
+    if(lm[11]?.visibility>.4&&lm[23]?.visibility>.4&&lm[25]?.visibility>.4){
+      document.getElementById('avh').textContent=calcAngle(lm[11],lm[23],lm[25])+'°';
+    }
+  } else if(cfg.type==='elbow'){
+    if(lm[12]?.visibility>.4&&lm[14]?.visibility>.4&&lm[16]?.visibility>.4){
+      mainAngle=calcAngle(lm[12],lm[14],lm[16]);
+      document.getElementById('avg').textContent=mainAngle+'°';
+    }
+    if(lm[11]?.visibility>.4&&lm[13]?.visibility>.4&&lm[15]?.visibility>.4){
+      document.getElementById('avh').textContent=calcAngle(lm[11],lm[13],lm[15])+'°';
+    }
+  } else if(cfg.type==='hip'){
+    if(lm[12]?.visibility>.4&&lm[24]?.visibility>.4&&lm[26]?.visibility>.4){
+      mainAngle=calcAngle(lm[12],lm[24],lm[26]);
+      document.getElementById('avg').textContent=mainAngle+'°';
+    }
+  } else if(cfg.type==='trunk'){
+    if(lm[12]?.visibility>.4&&lm[24]?.visibility>.4){
+      const dx=lm[12].x-lm[24].x,dy=lm[12].y-lm[24].y;
+      mainAngle=Math.round(Math.abs(Math.atan2(dx,Math.abs(dy))*180/Math.PI));
+      document.getElementById('avg').textContent=mainAngle+'°';
+    }
   }
 
-  // Angle hanches
-  if(lm[11]?.visibility>.5 && lm[23]?.visibility>.5 && lm[25]?.visibility>.5){
-    const hipAngle = calcAngle(lm[11],lm[23],lm[25]);
-    document.getElementById('avh').textContent=hipAngle+'°';
+  if(lm[11]?.visibility>.4&&lm[23]?.visibility>.4){
+    const dx=lm[11].x-lm[23].x,dy=lm[11].y-lm[23].y;
+    const backLean=Math.round(Math.abs(Math.atan2(dx,Math.abs(dy))*180/Math.PI));
+    document.getElementById('avd').textContent=backLean+'°';
+    if(backLean>30&&['Squat classique','Squat sumo'].includes(exoName)) errJoints.push(11,12,23,24);
   }
 
-  // Dos — angle épaule-hanche
-  if(lm[11]?.visibility>.5 && lm[23]?.visibility>.5){
-    const dx=lm[11].x-lm[23].x, dy=lm[11].y-lm[23].y;
-    const backAngle = Math.round(Math.abs(Math.atan2(dx,dy)*180/Math.PI));
-    document.getElementById('avd').textContent=backAngle+'°';
-    if(backAngle>25){ errJoints.push(11,12,23,24); } // dos penché
+  if(mainAngle!==null){
+    repBuffer.push(mainAngle);
+    if(repBuffer.length>4) repBuffer.shift();
+    const sm=Math.round(repBuffer.reduce((a,b)=>a+b,0)/repBuffer.length);
+    if(cfg.type!=='trunk'){
+      if(sm<cfg.down&&repPhase==='up') repPhase='down';
+      if(sm>cfg.up&&repPhase==='down'){repPhase='up';reps++;totalReps++;document.getElementById('repn').textContent=reps;checkRep();}
+    } else {
+      if(sm>cfg.down&&repPhase==='up') repPhase='down';
+      if(sm<cfg.down-10&&repPhase==='down'){repPhase='up';reps++;totalReps++;document.getElementById('repn').textContent=reps;checkRep();}
+    }
   }
 
-  // Mise à jour badges
-  document.getElementById('abg').className='ab'+(errJoints.includes(25)||errJoints.includes(26)?' err':'');
-  document.getElementById('abd').className='ab'+(errJoints.includes(11)||errJoints.includes(23)?' err':'');
+  document.getElementById('abg').className='ab'+(errJoints.some(j=>[25,26,13,14].includes(j))?' err':'');
+  document.getElementById('abd').className='ab'+(errJoints.some(j=>[11,12,23,24].includes(j))?' err':'');
 
-  // Erreur posture soutenue
-  if(errJoints.length>0 && !errState){
-    phaseSwitchCount++;
-    if(phaseSwitchCount>8) trigErr();
-  } else if(errJoints.length===0){
-    phaseSwitchCount=0;
-    if(errState) clearErr();
-  }
+  if(errJoints.length>0&&!errState){phaseSwitchCount++;if(phaseSwitchCount>15){phaseSwitchCount=0;trigErr();}}
+  else if(errJoints.length===0){phaseSwitchCount=Math.max(0,phaseSwitchCount-1);if(errState&&phaseSwitchCount===0)clearErr();}
 
   return errJoints;
 }
 
 async function loadMediaPipe(){
-  return new Promise((resolve)=>{
+  return new Promise((resolve,reject)=>{
     if(window.Pose){resolve();return;}
-    // Chargement MediaPipe
     const s1=document.createElement('script');
     s1.src='https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js';
+    s1.crossOrigin='anonymous';
+    s1.onerror=()=>reject(new Error('MP load fail'));
     s1.onload=()=>{
       const s2=document.createElement('script');
       s2.src='https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js';
+      s2.crossOrigin='anonymous';
+      s2.onerror=()=>reject(new Error('MP pose fail'));
       s2.onload=()=>resolve();
       document.head.appendChild(s2);
     };
     document.head.appendChild(s1);
+    setTimeout(()=>reject(new Error('MP timeout')),8000);
   });
 }
 
 function startDemo(){
-  demoOn=true;initCv();sizeCv();
-  // Mode démo avec squelette simulé
-  activateOv();
-  (function df(){
+  demoOn=true;initCv();sizeCv();activateOv();
+  repBuffer=[];
+  (function demoFallback(){
     skelAnim+=.008;const ph=(Math.sin(skelAnim)+1)/2;
-    drawDemoSkel(ph);
-    updAngsDemo(ph);
-    demoId=requestAnimationFrame(df);
+    drawDemoSkel(ph);updAngsDemo(ph);demoId=requestAnimationFrame(df);
   })();
-}
-
-function drawDemoSkel(ph){
-  if(!cx||!cv)return;
-  const W=cv.width,H=cv.height,cx2=W*.5,sq=Math.sin(ph*Math.PI);
-  // Simule 33 landmarks MediaPipe
-  const lm=Array(33).fill(null).map(()=>({x:0,y:0,visibility:0}));
-  // Points clés simulés
-  lm[0]={x:cx2/W,y:H*.08/H,visibility:1}; // nez
-  lm[11]={x:(cx2-W*.1)/W,y:H*(.22+sq*.05)/H,visibility:1}; // épaule g
-  lm[12]={x:(cx2+W*.1)/W,y:H*(.22+sq*.05)/H,visibility:1}; // épaule d
-  lm[13]={x:(cx2-W*.18)/W,y:H*(.32+sq*.04)/H,visibility:1}; // coude g
-  lm[14]={x:(cx2+W*.18)/W,y:H*(.32+sq*.04)/H,visibility:1}; // coude d
-  lm[15]={x:(cx2-W*.2)/W,y:H*(.46+sq*.04)/H,visibility:1};  // poignet g
-  lm[16]={x:(cx2+W*.2)/W,y:H*(.46+sq*.04)/H,visibility:1};  // poignet d
-  lm[23]={x:(cx2-W*.07)/W,y:H*(.5+sq*.1)/H,visibility:1};   // hanche g
-  lm[24]={x:(cx2+W*.07)/W,y:H*(.5+sq*.1)/H,visibility:1};   // hanche d
-  lm[25]={x:(cx2-W*.09)/W,y:H*(.66+sq*.04)/H,visibility:1}; // genou g
-  lm[26]={x:(cx2+W*.09)/W,y:H*(.66+sq*.04)/H,visibility:1}; // genou d
-  lm[27]={x:(cx2-W*.09)/W,y:H*.84/H,visibility:1};           // cheville g
-  lm[28]={x:(cx2+W*.09)/W,y:H*.84/H,visibility:1};           // cheville d
-  lm[29]={x:(cx2-W*.08)/W,y:H*.88/H,visibility:1};
-  lm[30]={x:(cx2+W*.08)/W,y:H*.88/H,visibility:1};
-  lm[31]={x:(cx2-W*.07)/W,y:H*.92/H,visibility:1};
-  lm[32]={x:(cx2+W*.07)/W,y:H*.92/H,visibility:1};
-
-  const errJoints=errState?[25,26]:[];
-  drawMPSkeleton(lm,errJoints);
-}
-
-function updAngsDemo(ph){
-  const kn=Math.round(170-ph*90),hi=Math.round(175-ph*105),bk=Math.round(175-ph*15+(errState?-20:0));
-  document.getElementById('avg').textContent=kn+'°';document.getElementById('avh').textContent=hi+'°';document.getElementById('avd').textContent=bk+'°';
-  document.getElementById('abg').className='ab'+(kn<72?' err':'');document.getElementById('abd').className='ab'+(errState?' err':'');
-  if(ph>.82&&repPhase==='up'){repPhase='down';}
-  else if(ph<.18&&repPhase==='down'){repPhase='up';reps++;totalReps++;document.getElementById('repn').textContent=reps;checkRep();}
 }
 
 async function startCam(){
   initCv();sizeCv();
   try{
-    // Tente MediaPipe d'abord
-    await loadMediaPipe();
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}}});
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:'user',width:{ideal:1280,min:640},height:{ideal:720,min:480},frameRate:{ideal:30}}
+    });
     videoEl=document.createElement('video');
-    videoEl.srcObject=stream;videoEl.autoplay=true;videoEl.playsInline=true;
-    videoEl.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)';
+    videoEl.srcObject=stream;videoEl.autoplay=true;videoEl.playsInline=true;videoEl.muted=true;
+    videoEl.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none';
     document.getElementById('cam-z').prepend(videoEl);
+    await videoEl.play().catch(()=>{});
     camOn=true;activateOv();
-
-    if(window.Pose){
-      // Vrai MediaPipe
-      const pose=new Pose({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
-      pose.setOptions({modelComplexity:1,smoothLandmarks:true,enableSegmentation:false,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
-      pose.onResults((results)=>{
+    try{await loadMediaPipe();}catch(e){console.warn('MP fallback:',e.message);}
+    if(window.Pose&&window.Camera){
+      document.getElementById('cbg').querySelector('span').textContent='🧠 MediaPipe IA';
+      const pose=new Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
+      pose.setOptions({modelComplexity:1,smoothLandmarks:true,enableSegmentation:false,minDetectionConfidence:0.5,minTrackingConfidence:0.5});
+      pose.onResults(results=>{
+        if(!cx||!cv)return;
         cx.clearRect(0,0,cv.width,cv.height);
-        // Dessine le feed vidéo miroir
-        cx.save();cx.scale(-1,1);cx.drawImage(results.image,-cv.width,0,cv.width,cv.height);cx.restore();
+        cx.save();cx.translate(cv.width,0);cx.scale(-1,1);cx.drawImage(results.image,0,0,cv.width,cv.height);cx.restore();
         if(results.poseLandmarks){
-          // Miroir des landmarks X
-          const mirrored=results.poseLandmarks.map(lm=>({...lm,x:1-lm.x}));
-          const errJoints=analyzePosture(mirrored)||[];
-          drawMPSkeleton(mirrored,errJoints);
-          mpReady=true;
-          document.getElementById('cbg').querySelector('span').textContent='MediaPipe IA';
+          const m=results.poseLandmarks.map(lm=>({...lm,x:1-lm.x}));
+          drawMPSkeleton(m,analyzePosture(m)||[]);
         }
       });
-      const camera=new Camera(videoEl,{onFrame:async()=>await pose.send({image:videoEl}),width:640,height:480});
+      const camera=new Camera(videoEl,{onFrame:async()=>{try{await pose.send({image:videoEl});}catch(e){}},width:1280,height:720});
       camera.start();
     } else {
-      // Fallback: animation simulée sur vrai feed
+      document.getElementById('cbg').querySelector('span').textContent='📷 Caméra active';
+      videoEl.style.opacity='1';
+      repBuffer=[];
       (function cf(){
         if(!camOn)return;
-        cx.save();cx.scale(-1,1);cx.drawImage(videoEl,-cv.width,0,cv.width,cv.height);cx.restore();
-        skelAnim+=.006;const ph=(Math.sin(skelAnim)+1)/2;
-        drawDemoSkel(ph);updAngsDemo(ph);
-        requestAnimationFrame(cf);
+        if(!cx||!cv){requestAnimationFrame(cf);return;}
+        cx.clearRect(0,0,cv.width,cv.height);
+        cx.save();cx.translate(cv.width,0);cx.scale(-1,1);cx.drawImage(videoEl,0,0,cv.width,cv.height);cx.restore();
+        skelAnim+=.007;const ph=(Math.sin(skelAnim)+1)/2;
+        drawDemoSkel(ph);updAngsDemo(ph);requestAnimationFrame(cf);
       })();
     }
-  }catch(e){
-    console.warn('Caméra non disponible, mode démo',e);
-    startDemo();
-  }
+  }catch(e){console.warn('Cam error:',e);startDemo();}
 }
-
 function activateOv(){
   document.getElementById('ncam').style.display='none';
   document.getElementById('cam-ov').style.display='flex';
