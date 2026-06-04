@@ -834,6 +834,143 @@ function launchSes(sid){
 }
 
 // ═══ SESSION ═══════════════════════════════════
+// Pose emojis et descriptions par exercice
+const EXO_POSE = {
+  'Squat classique':      {emoji:'🦵', desc:'Pieds écartés largeur épaules, orteils légèrement sortis. Regarde devant toi.', tips:'Garde le dos droit, genoux dans l\'axe des pieds'},
+  'Squat sauté':          {emoji:'⚡', desc:'Même position que le squat. Prêt à exploser vers le haut !', tips:'Réception douce sur les pointes de pieds'},
+  'Fentes avant':         {emoji:'🦵', desc:'Debout, pieds joints. Tu vas avancer un pied en grand pas.', tips:'Genou avant à 90°, genou arrière effleure le sol'},
+  'Pont fessier':         {emoji:'🍑', desc:'Allonge-toi sur le dos, genoux pliés, pieds à plat au sol.', tips:'Soulève les hanches en contractant les fessiers'},
+  'Mountain climbers':    {emoji:'🏃', desc:'Position de pompe, corps aligné. Bras tendus.', tips:'Ramène les genoux vers la poitrine rapidement'},
+  'Gainage planche':      {emoji:'💪', desc:'Mets-toi en position de pompe, appui sur les coudes.', tips:'Corps rigide de la tête aux talons, ne laisse pas les hanches tomber'},
+  'Pompes classiques':    {emoji:'💪', desc:'Mains à largeur d\'épaules, corps aligné. Regarde le sol.', tips:'Descends jusqu\'à 5cm du sol, coudes à 45°'},
+  'Pompes larges':        {emoji:'💪', desc:'Même que les pompes mais mains plus écartées.', tips:'Cible les pectoraux externes'},
+  'Superman':             {emoji:'🦸', desc:'Allonge-toi sur le ventre, bras tendus devant toi.', tips:'Soulève bras et jambes en même temps'},
+  'Tirage bouteilles':    {emoji:'🏋️', desc:'Penche le buste à 45°, bouteilles dans les mains bras tendus.', tips:'Tire vers le nombril, coudes rasent les côtes'},
+  'Jumping jacks':        {emoji:'⭐', desc:'Debout, pieds joints, bras le long du corps.', tips:'Rythme régulier, atterrissage souple'},
+  'Burpee':               {emoji:'🔥', desc:'Debout, prêt à te mettre au sol rapidement.', tips:'Debout → pompe → saut les bras en l\'air'},
+  'Élévations latérales': {emoji:'🏋️', desc:'Debout, bras le long du corps, bouteilles en main.', tips:'Monte les bras sur les côtés jusqu\'à l\'horizontal'},
+  'Curl biceps':          {emoji:'💪', desc:'Debout, coudes fixes le long du corps, paumes vers le haut.', tips:'Monte lentement, descends encore plus lentement'},
+  'Dips sur chaise':      {emoji:'🪑', desc:'Mains sur le bord d\'une chaise derrière toi, jambes tendues.', tips:'Descends les fesses vers le sol en pliant les coudes'},
+  'Fentes latérales':     {emoji:'🦵', desc:'Debout, pieds joints. Tu vas écarter une jambe sur le côté.', tips:'L\'autre jambe reste tendue, dos droit'},
+  'Crunch classique':     {emoji:'🤸', desc:'Allonge-toi sur le dos, genoux pliés, mains derrière la tête.', tips:'Soulève les épaules, bas du dos reste au sol'},
+  'Russian twist':        {emoji:'🔄', desc:'Assis à 45°, genoux pliés, pieds levés si possible.', tips:'Tourne le buste de gauche à droite'},
+  'Step-up chaise':       {emoji:'🪑', desc:'Debout face à une chaise solide.', tips:'Monte en poussant sur le talon, contrôle la descente'},
+  'Donkey kicks':         {emoji:'🍑', desc:'À 4 pattes, dos plat. Poids sur les genoux et les mains.', tips:'Pousse un talon vers le plafond en contractant le fessier'},
+  'Squat sumo':           {emoji:'🦵', desc:'Pieds très écartés, orteils pointés vers l\'extérieur.', tips:'Descends lentement, genoux dans l\'axe des orteils'},
+  'Développé militaire':  {emoji:'🏋️', desc:'Debout ou assis, bouteilles à hauteur des épaules.', tips:'Pousse vers le plafond, gainage du buste'},
+  'Relevé de jambes':     {emoji:'🤸', desc:'Allonge-toi sur le dos, mains sous les fesses, jambes tendues.', tips:'Monte les jambes à 90°, contrôle la descente'},
+  'Skater sauts':         {emoji:'⛸️', desc:'Debout, prêt à sauter latéralement d\'un pied sur l\'autre.', tips:'Amplitude maximale, atterrissage souple sur un pied'},
+  'Cat-cow':              {emoji:'🐱', desc:'À 4 pattes, poignets sous les épaules, genoux sous les hanches.', tips:'Expire en arrondissant le dos, inspire en creusant'},
+  'Gainage latéral':      {emoji:'💪', desc:'Allonge-toi sur le côté, appui sur un coude.', tips:'Soulève les hanches, corps aligné de la tête aux pieds'},
+  'V-up':                 {emoji:'🤸', desc:'Allonge-toi sur le dos, bras tendus derrière la tête.', tips:'Monte bras et jambes en même temps pour former un V'},
+  'Pompes serrées':       {emoji:'💪', desc:'Mains proches l\'une de l\'autre sous la poitrine.', tips:'Coudes le long du corps, travaille les triceps'},
+  'Mollets debout':       {emoji:'🦵', desc:'Debout, pieds à plat. Tu peux te tenir à un mur.', tips:'Monte sur les pointes, tiens 1 sec, descends lentement'},
+  'Hip flexor stretch':   {emoji:'🧘', desc:'En position de fente basse, genou arrière au sol.', tips:'Pousse les hanches vers l\'avant, tiens la position'},
+};
+
+function getExoPose(exoName) {
+  return EXO_POSE[exoName] || {emoji:'💪', desc:'Prends ta position de départ.', tips:'Dos droit, gainage actif'};
+}
+
+// ─── POSE TRANSITION SCREEN ──────────────────
+let poseCountdown = null;
+
+function showPoseScreen(exo, onReady) {
+  // Stoppe tout
+  clearInterval(anlsInt);stopTimer();
+  if(demoId){cancelAnimationFrame(demoId);demoId=null;}
+
+  const pose = getExoPose(exo.n);
+  const secs = 8; // 8 secondes pour se positionner
+
+  // Créer l'overlay de pose
+  let overlay = document.getElementById('pose-overlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'pose-overlay';
+    overlay.style.cssText = `position:absolute;inset:0;z-index:50;background:rgba(8,10,13,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px;text-align:center`;
+    document.getElementById('cam-z').appendChild(overlay);
+  }
+
+  let countdown = secs;
+  overlay.innerHTML = buildPoseHTML(exo, pose, countdown);
+  overlay.style.display = 'flex';
+
+  // Annonce vocale coach
+  coachMsg(`Prochain exercice : **${exo.n}** — ${exo.s} séries × ${exo.r ? exo.r+' reps' : '30 sec'}. ${pose.desc} Tu as ${secs} secondes pour te préparer !`);
+
+  clearInterval(poseCountdown);
+  poseCountdown = setInterval(() => {
+    countdown--;
+    const el = document.getElementById('pose-count');
+    if(el) el.textContent = countdown;
+    const ring = document.getElementById('pose-ring');
+    if(ring) ring.style.strokeDashoffset = (2 * Math.PI * 54) * (1 - countdown/secs);
+
+    if(countdown <= 0) {
+      clearInterval(poseCountdown);
+      overlay.style.display = 'none';
+      onReady();
+    }
+  }, 1000);
+}
+
+function buildPoseHTML(exo, pose, secs) {
+  const circum = 2 * Math.PI * 54;
+  return `
+    <div style="font-size:11px;font-family:var(--fm);color:var(--ac);text-transform:uppercase;letter-spacing:.1em">Prochain exercice</div>
+    <div style="font-family:var(--fd);font-size:28px;font-weight:800;letter-spacing:-1px;color:var(--tx)">${pose.emoji} ${exo.n}</div>
+    <div style="background:var(--s2);border:1px solid var(--b2);border-radius:14px;padding:16px 24px;max-width:360px">
+      <div style="font-size:14px;color:var(--tx);line-height:1.6;margin-bottom:8px">${pose.desc}</div>
+      <div style="font-size:12px;color:var(--ac)">💡 ${pose.tips}</div>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center">
+      <div style="background:var(--s2);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--t2)">⏱ ${exo.s} séries × ${exo.r ? exo.r+' reps' : '30 sec'}</div>
+      <div style="background:var(--s2);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--t2)">💪 ${exo.m}</div>
+    </div>
+    <div style="position:relative;width:120px;height:120px">
+      <svg width="120" height="120" viewBox="0 0 120 120" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">
+        <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/>
+        <circle id="pose-ring" cx="60" cy="60" r="54" fill="none" stroke="var(--ac)" stroke-width="6" stroke-linecap="round"
+          stroke-dasharray="${circum}" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div id="pose-count" style="font-size:36px;font-weight:700;font-family:var(--fm);color:var(--tx)">${secs}</div>
+        <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.07em">sec</div>
+      </div>
+    </div>
+    <button onclick="skipPose()" style="background:var(--s2);border:1px solid var(--b2);color:var(--t2);font-size:13px;padding:8px 20px;border-radius:100px;cursor:pointer">Je suis prêt →</button>
+  `;
+}
+
+function skipPose() {
+  clearInterval(poseCountdown);
+  const overlay = document.getElementById('pose-overlay');
+  if(overlay) overlay.style.display = 'none';
+  startExo();
+}
+
+function startExo() {
+  reps = 0;
+  document.getElementById('repn').textContent = 0;
+  // Redémarre skeleton si caméra active
+  if(camOn || demoOn) {
+    if(demoOn && !demoId) {
+      (function df(){skelAnim+=.008;const ph=(Math.sin(skelAnim)+1)/2;drawSkel(skelPts(ph),errState?'k':null);updAngs(ph);demoId=requestAnimationFrame(df);})();
+    }
+    const exo = curExos[curExo];
+    const duration = exo.r ? 45 : 30; // Gainage = 30s, reps = 45s max
+    startTimer(duration);
+    startAnls();
+    coachMsg(`C'est parti ! **${exo.n}** — série **${curSet}/${exo.s}**. ${getExoPose(exo.n).tips} 💪`);
+  }
+}
+
+// ─── CANVAS & MEDIAPIPE ─────────────────────────
+let videoEl = null;
+let poseDetector = null;
+let mpReady = false;
+
 function initCv(){
   cv=document.getElementById('cv');if(!cv)return;
   cx=cv.getContext('2d');sizeCv();
@@ -844,55 +981,235 @@ function sizeCv(){
 }
 window.addEventListener('resize',sizeCv);
 
-function skelPts(ph){
-  if(!cv)return{};
-  const W=cv.width,H=cv.height,cx2=W*.5,sq=Math.sin(ph*Math.PI);
-  return{nose:{x:cx2,y:H*.11},ls:{x:cx2-W*.14,y:H*(.23+sq*.06)},rs:{x:cx2+W*.14,y:H*(.23+sq*.06)},lh:{x:cx2-W*.1,y:H*(.51+sq*.12)},rh:{x:cx2+W*.1,y:H*(.51+sq*.12)},lk:{x:cx2-W*(.12-sq*.04),y:H*(.67+sq*.04)},rk:{x:cx2+W*(.12-sq*.04),y:H*(.67+sq*.04)},la:{x:cx2-W*.12,y:H*.87},ra:{x:cx2+W*.12,y:H*.87},le:{x:cx2-W*.22,y:H*(.33+sq*.06)},re:{x:cx2+W*.22,y:H*(.33+sq*.06)},lw:{x:cx2-W*.21,y:H*(.51+sq*.12)},rw:{x:cx2+W*.21,y:H*(.51+sq*.12)}};
-}
-function drawSkel(pts,errJ){
-  if(!cx||!pts||!Object.keys(pts).length)return;
+// Connexions squelette MediaPipe Pose
+const MP_CONNECTIONS = [
+  [11,12],[11,13],[13,15],[12,14],[14,16], // bras
+  [11,23],[12,24],[23,24],                  // torse
+  [23,25],[25,27],[27,29],[27,31],           // jambe gauche
+  [24,26],[26,28],[28,30],[28,32],           // jambe droite
+  [0,11],[0,12],                             // tête
+];
+
+function drawMPSkeleton(landmarks, errJoints=[]) {
+  if(!cx||!landmarks)return;
   cx.clearRect(0,0,cv.width,cv.height);
-  const C=[['ls','rs'],['ls','lh'],['rs','rh'],['lh','rh'],['ls','le'],['le','lw'],['rs','re'],['re','rw'],['lh','lk'],['lk','la'],['rh','rk'],['rk','ra'],['nose','ls'],['nose','rs']];
-  cx.lineWidth=2.5;cx.lineCap='round';
-  C.forEach(([a,b])=>{
-    if(!pts[a]||!pts[b])return;
-    const err=errJ&&[a,b].some(p=>p.includes(errJ));
-    cx.strokeStyle=err?'rgba(255,107,74,.9)':'rgba(200,245,90,.75)';
-    cx.shadowColor=err?'rgba(255,107,74,.4)':'rgba(200,245,90,.3)';cx.shadowBlur=8;
-    cx.beginPath();cx.moveTo(pts[a].x,pts[a].y);cx.lineTo(pts[b].x,pts[b].y);cx.stroke();
+  const W=cv.width,H=cv.height;
+
+  // Connections
+  cx.lineWidth=3;cx.lineCap='round';
+  MP_CONNECTIONS.forEach(([a,b])=>{
+    if(!landmarks[a]||!landmarks[b])return;
+    if(landmarks[a].visibility<0.3||landmarks[b].visibility<0.3)return;
+    const isErr=errJoints.includes(a)||errJoints.includes(b);
+    cx.strokeStyle=isErr?'rgba(255,107,74,.9)':'rgba(200,245,90,.8)';
+    cx.shadowColor=isErr?'rgba(255,107,74,.5)':'rgba(200,245,90,.4)';cx.shadowBlur=10;
+    cx.beginPath();
+    cx.moveTo(landmarks[a].x*W,landmarks[a].y*H);
+    cx.lineTo(landmarks[b].x*W,landmarks[b].y*H);
+    cx.stroke();
   });
   cx.shadowBlur=0;
-  Object.entries(pts).forEach(([k,p])=>{
-    const err=errJ&&k.includes(errJ);
-    cx.beginPath();cx.arc(p.x,p.y,k==='nose'?6:4,0,Math.PI*2);
-    cx.fillStyle=err?'#ff6b4a':'#c8f55a';cx.fill();
+
+  // Points
+  landmarks.forEach((lm,i)=>{
+    if(lm.visibility<0.3)return;
+    const isErr=errJoints.includes(i);
+    const r=i===0?8:(i<11?5:4);
+    cx.beginPath();cx.arc(lm.x*W,lm.y*H,r,0,Math.PI*2);
+    cx.fillStyle=isErr?'#ff6b4a':'#c8f55a';cx.fill();
   });
 }
-function startDemo(){demoOn=true;initCv();sizeCv();activateOv();(function df(){skelAnim+=.008;const ph=(Math.sin(skelAnim)+1)/2;drawSkel(skelPts(ph),errState?'k':null);updAngs(ph);demoId=requestAnimationFrame(df);})();}
-async function startCam(){
-  initCv();sizeCv();
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}});
-    const v=document.createElement('video');v.srcObject=stream;v.autoplay=true;v.playsInline=true;
-    v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)';
-    document.getElementById('cam-z').prepend(v);camOn=true;activateOv();
-    (function cf(){if(!camOn)return;skelAnim+=.006;const ph=(Math.sin(skelAnim)+1)/2;drawSkel(skelPts(ph),errState?'k':null);updAngs(ph);requestAnimationFrame(cf);})();
-  }catch(e){startDemo();}
+
+function calcAngle(a,b,c) {
+  // Angle en degrés entre 3 landmarks
+  const ab={x:a.x-b.x,y:a.y-b.y};
+  const cb={x:c.x-b.x,y:c.y-b.y};
+  const dot=ab.x*cb.x+ab.y*cb.y;
+  const mag=Math.sqrt(ab.x**2+ab.y**2)*Math.sqrt(cb.x**2+cb.y**2);
+  return Math.round(Math.acos(Math.min(1,dot/mag))*180/Math.PI);
 }
-function activateOv(){
-  document.getElementById('ncam').style.display='none';
-  document.getElementById('cam-ov').style.display='flex';
-  startTimer(45);startAnls();
-  coachMsg(`Parfait ! Je vois ton corps. Commence **${curExos[0]?.n||'le premier exercice'}** — 3 secondes en descente. 💪`);
+
+let lastKneeAngle=180,phaseSwitchCount=0;
+
+function analyzePosture(lm) {
+  if(!lm||lm.length<33)return;
+  const errJoints=[];
+
+  // Angle genoux (25=hip_l, 25=knee_l, 27=ankle_l)
+  if(lm[23]?.visibility>.5 && lm[25]?.visibility>.5 && lm[27]?.visibility>.5){
+    const kneeAngle = calcAngle(lm[23],lm[25],lm[27]);
+    document.getElementById('avg').textContent=kneeAngle+'°';
+    // Détection rep : descente puis remontée
+    if(kneeAngle<100 && lastKneeAngle>=100) repPhase='down';
+    if(kneeAngle>150 && repPhase==='down'){
+      repPhase='up';reps++;totalReps++;
+      document.getElementById('repn').textContent=reps;checkRep();
+    }
+    if(kneeAngle<70) errJoints.push(25,26); // genoux trop fléchis
+    lastKneeAngle=kneeAngle;
+  }
+
+  // Angle hanches
+  if(lm[11]?.visibility>.5 && lm[23]?.visibility>.5 && lm[25]?.visibility>.5){
+    const hipAngle = calcAngle(lm[11],lm[23],lm[25]);
+    document.getElementById('avh').textContent=hipAngle+'°';
+  }
+
+  // Dos — angle épaule-hanche
+  if(lm[11]?.visibility>.5 && lm[23]?.visibility>.5){
+    const dx=lm[11].x-lm[23].x, dy=lm[11].y-lm[23].y;
+    const backAngle = Math.round(Math.abs(Math.atan2(dx,dy)*180/Math.PI));
+    document.getElementById('avd').textContent=backAngle+'°';
+    if(backAngle>25){ errJoints.push(11,12,23,24); } // dos penché
+  }
+
+  // Mise à jour badges
+  document.getElementById('abg').className='ab'+(errJoints.includes(25)||errJoints.includes(26)?' err':'');
+  document.getElementById('abd').className='ab'+(errJoints.includes(11)||errJoints.includes(23)?' err':'');
+
+  // Erreur posture soutenue
+  if(errJoints.length>0 && !errState){
+    phaseSwitchCount++;
+    if(phaseSwitchCount>8) trigErr();
+  } else if(errJoints.length===0){
+    phaseSwitchCount=0;
+    if(errState) clearErr();
+  }
+
+  return errJoints;
 }
-function updAngs(ph){
-  const kn=Math.round(170-ph*90),hi=Math.round(175-ph*105),bk=Math.round(175-ph*15+(errState?-22:0));
+
+async function loadMediaPipe(){
+  return new Promise((resolve)=>{
+    if(window.Pose){resolve();return;}
+    // Chargement MediaPipe
+    const s1=document.createElement('script');
+    s1.src='https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js';
+    s1.onload=()=>{
+      const s2=document.createElement('script');
+      s2.src='https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js';
+      s2.onload=()=>resolve();
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s1);
+  });
+}
+
+function startDemo(){
+  demoOn=true;initCv();sizeCv();
+  // Mode démo avec squelette simulé
+  activateOv();
+  (function df(){
+    skelAnim+=.008;const ph=(Math.sin(skelAnim)+1)/2;
+    drawDemoSkel(ph);
+    updAngsDemo(ph);
+    demoId=requestAnimationFrame(df);
+  })();
+}
+
+function drawDemoSkel(ph){
+  if(!cx||!cv)return;
+  const W=cv.width,H=cv.height,cx2=W*.5,sq=Math.sin(ph*Math.PI);
+  // Simule 33 landmarks MediaPipe
+  const lm=Array(33).fill(null).map(()=>({x:0,y:0,visibility:0}));
+  // Points clés simulés
+  lm[0]={x:cx2/W,y:H*.08/H,visibility:1}; // nez
+  lm[11]={x:(cx2-W*.1)/W,y:H*(.22+sq*.05)/H,visibility:1}; // épaule g
+  lm[12]={x:(cx2+W*.1)/W,y:H*(.22+sq*.05)/H,visibility:1}; // épaule d
+  lm[13]={x:(cx2-W*.18)/W,y:H*(.32+sq*.04)/H,visibility:1}; // coude g
+  lm[14]={x:(cx2+W*.18)/W,y:H*(.32+sq*.04)/H,visibility:1}; // coude d
+  lm[15]={x:(cx2-W*.2)/W,y:H*(.46+sq*.04)/H,visibility:1};  // poignet g
+  lm[16]={x:(cx2+W*.2)/W,y:H*(.46+sq*.04)/H,visibility:1};  // poignet d
+  lm[23]={x:(cx2-W*.07)/W,y:H*(.5+sq*.1)/H,visibility:1};   // hanche g
+  lm[24]={x:(cx2+W*.07)/W,y:H*(.5+sq*.1)/H,visibility:1};   // hanche d
+  lm[25]={x:(cx2-W*.09)/W,y:H*(.66+sq*.04)/H,visibility:1}; // genou g
+  lm[26]={x:(cx2+W*.09)/W,y:H*(.66+sq*.04)/H,visibility:1}; // genou d
+  lm[27]={x:(cx2-W*.09)/W,y:H*.84/H,visibility:1};           // cheville g
+  lm[28]={x:(cx2+W*.09)/W,y:H*.84/H,visibility:1};           // cheville d
+  lm[29]={x:(cx2-W*.08)/W,y:H*.88/H,visibility:1};
+  lm[30]={x:(cx2+W*.08)/W,y:H*.88/H,visibility:1};
+  lm[31]={x:(cx2-W*.07)/W,y:H*.92/H,visibility:1};
+  lm[32]={x:(cx2+W*.07)/W,y:H*.92/H,visibility:1};
+
+  const errJoints=errState?[25,26]:[];
+  drawMPSkeleton(lm,errJoints);
+}
+
+function updAngsDemo(ph){
+  const kn=Math.round(170-ph*90),hi=Math.round(175-ph*105),bk=Math.round(175-ph*15+(errState?-20:0));
   document.getElementById('avg').textContent=kn+'°';document.getElementById('avh').textContent=hi+'°';document.getElementById('avd').textContent=bk+'°';
   document.getElementById('abg').className='ab'+(kn<72?' err':'');document.getElementById('abd').className='ab'+(errState?' err':'');
   if(ph>.82&&repPhase==='up'){repPhase='down';}
   else if(ph<.18&&repPhase==='down'){repPhase='up';reps++;totalReps++;document.getElementById('repn').textContent=reps;checkRep();}
 }
-function startAnls(){anlsCount=0;anlsInt=setInterval(()=>{anlsCount++;if(anlsCount%9===0&&!errState)trigErr();else if(errState&&anlsCount%6===0)clearErr();},1500);}
+
+async function startCam(){
+  initCv();sizeCv();
+  try{
+    // Tente MediaPipe d'abord
+    await loadMediaPipe();
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}}});
+    videoEl=document.createElement('video');
+    videoEl.srcObject=stream;videoEl.autoplay=true;videoEl.playsInline=true;
+    videoEl.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)';
+    document.getElementById('cam-z').prepend(videoEl);
+    camOn=true;activateOv();
+
+    if(window.Pose){
+      // Vrai MediaPipe
+      const pose=new Pose({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
+      pose.setOptions({modelComplexity:1,smoothLandmarks:true,enableSegmentation:false,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
+      pose.onResults((results)=>{
+        cx.clearRect(0,0,cv.width,cv.height);
+        // Dessine le feed vidéo miroir
+        cx.save();cx.scale(-1,1);cx.drawImage(results.image,-cv.width,0,cv.width,cv.height);cx.restore();
+        if(results.poseLandmarks){
+          // Miroir des landmarks X
+          const mirrored=results.poseLandmarks.map(lm=>({...lm,x:1-lm.x}));
+          const errJoints=analyzePosture(mirrored)||[];
+          drawMPSkeleton(mirrored,errJoints);
+          mpReady=true;
+          document.getElementById('cbg').querySelector('span').textContent='MediaPipe IA';
+        }
+      });
+      const camera=new Camera(videoEl,{onFrame:async()=>await pose.send({image:videoEl}),width:640,height:480});
+      camera.start();
+    } else {
+      // Fallback: animation simulée sur vrai feed
+      (function cf(){
+        if(!camOn)return;
+        cx.save();cx.scale(-1,1);cx.drawImage(videoEl,-cv.width,0,cv.width,cv.height);cx.restore();
+        skelAnim+=.006;const ph=(Math.sin(skelAnim)+1)/2;
+        drawDemoSkel(ph);updAngsDemo(ph);
+        requestAnimationFrame(cf);
+      })();
+    }
+  }catch(e){
+    console.warn('Caméra non disponible, mode démo',e);
+    startDemo();
+  }
+}
+
+function activateOv(){
+  document.getElementById('ncam').style.display='none';
+  document.getElementById('cam-ov').style.display='flex';
+  // Montre l'écran de pose pour le 1er exercice
+  showPoseScreen(curExos[0], startExo);
+}
+
+function startAnls(){
+  anlsCount=0;phaseSwitchCount=0;
+  anlsInt=setInterval(()=>{
+    anlsCount++;
+    // En mode démo, simule des erreurs aléatoires
+    if(demoOn){
+      if(anlsCount%9===0&&!errState)trigErr();
+      else if(errState&&anlsCount%6===0)clearErr();
+    }
+    // En mode MediaPipe, l'analyse se fait dans onResults
+  },1500);
+}
+
 function trigErr(){
   errState=true;totalErrs++;
   document.getElementById('eov').classList.add('show');
@@ -900,35 +1217,65 @@ function trigErr(){
   document.getElementById('ctx2').textContent=msg;document.getElementById('cb').classList.add('show');document.getElementById('cbg').classList.add('warn');
   getFB(msg);setTimeout(()=>document.getElementById('eov').classList.remove('show'),1400);
 }
-function clearErr(){errState=false;document.getElementById('cb').classList.remove('show');document.getElementById('cbg').classList.remove('warn');}
+function clearErr(){errState=false;document.getElementById('cb').classList.remove('show');document.getElementById('cbg').classList.remove('warn');phaseSwitchCount=0;}
+
 function checkRep(){
   const t=curExos[curExo]?.r;if(!t)return;
   if(reps===Math.floor(t/2))coachMsg(`Mi-chemin ! **${reps}/${t}** reps. Continue ! 🔥`);
   if(reps>=t)completeSet();
 }
+
 function completeSet(){
   clearInterval(anlsInt);stopTimer();
+  if(demoId){cancelAnimationFrame(demoId);demoId=null;}
   if(curSet<curExos[curExo].s){
-    curSet++;reps=0;document.getElementById('repn').textContent=0;updNavXi();
-    coachMsg(`🔥 Série **${curSet-1}/${curExos[curExo].s}** ! Repos **${curExos[curExo].rest}s**…`);
-    startTimer(curExos[curExo].rest,true);
-  }else{nextExo();}updProg();
+    curSet++;reps=0;updNavXi();
+    coachMsg(`🔥 Série **${curSet-1}/${curExos[curExo].s}** terminée ! Repos **${curExos[curExo].rest}s** — puis on repart !`);
+    // Timer de repos puis écran de pose
+    startRestTimer(curExos[curExo].rest, ()=>{
+      showPoseScreen(curExos[curExo], startExo);
+    });
+  }else{
+    nextExo();
+  }
+  updProg();
 }
+
 function nextExo(){
-  curExo++;curSet=1;reps=0;
+  curExo++;curSet=1;reps=0;lastKneeAngle=180;
   if(curExo>=curExos.length){openEnd();return;}
   buildEl();updProg();updNavXi();
-  coachMsg(`Super ! On passe aux **${curExos[curExo].n}** — ${curExos[curExo].s} séries. Prends ta position !`);
-  setTimeout(()=>{document.getElementById('repn').textContent=0;reps=0;startTimer(45);startAnls();},3000);
+  // Affiche l'écran de pose pour le prochain exercice
+  showPoseScreen(curExos[curExo], startExo);
 }
+
 function updNavXi(){if(curExo<curExos.length)document.getElementById('nav-xi').textContent=curExos[curExo].n;}
+
+// Timer principal (exercice)
 function startTimer(sec,rest=false){
   stopTimer();timerSec=sec;timerMax=sec;const C=207.3;
   document.getElementById('tcirc').style.stroke=rest?'var(--blue)':'var(--ac)';
   timerInt=setInterval(()=>{
     timerSec--;document.getElementById('tnum').textContent=timerSec;
     document.getElementById('tcirc').style.strokeDashoffset=C*(1-timerSec/timerMax);
-    if(timerSec<=0){stopTimer();if(rest){document.getElementById('tcirc').style.stroke='var(--ac)';document.getElementById('tcirc').style.strokeDashoffset=0;document.getElementById('tnum').textContent=45;startTimer(45);startAnls();coachMsg('C\'est reparti ! 💪');}}
+    if(timerSec<=0){
+      stopTimer();
+      // Fin du temps → compte comme set terminé pour les exercices en temps
+      if(!curExos[curExo]?.r) completeSet();
+    }
+  },1000);
+}
+
+// Timer de repos spécial (affiche en bleu, puis callback)
+function startRestTimer(sec, cb){
+  stopTimer();timerSec=sec;timerMax=sec;const C=207.3;
+  document.getElementById('tcirc').style.stroke='var(--blue)';
+  document.getElementById('tnum').textContent=sec;
+  document.getElementById('tcirc').style.strokeDashoffset=0;
+  timerInt=setInterval(()=>{
+    timerSec--;document.getElementById('tnum').textContent=timerSec;
+    document.getElementById('tcirc').style.strokeDashoffset=C*(1-timerSec/timerMax);
+    if(timerSec<=0){stopTimer();if(cb)cb();}
   },1000);
 }
 function stopTimer(){if(timerInt){clearInterval(timerInt);timerInt=null;}}
