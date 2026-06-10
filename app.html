@@ -128,8 +128,8 @@ button,input,select{font-family:var(--f)}
 
 /* SESSION */
 .ses-body{display:grid;grid-template-columns:1fr 340px;flex:1;overflow:hidden;min-height:0}
-.cam-z{background:#000;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
-#cv{position:absolute;inset:0;width:100%;height:100%}
+.cam-z{background:#111;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#cv{position:absolute;inset:0;width:100%;height:100%;background:transparent;pointer-events:none}
 .ncam{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--sur)}
 .ncam-ico{width:60px;height:60px;border-radius:50%;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:26px}
 .ncam p{font-size:13px;color:var(--t2);text-align:center;max-width:200px;line-height:1.5}
@@ -331,15 +331,19 @@ button,input,select{font-family:var(--f)}
         <p class="box-s">Connecte-toi pour reprendre ta transformation.</p>
         <button class="goog" onclick="qLogin()"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Continuer avec Google</button>
         <div class="div">ou</div>
-        <div class="f"><label>Email</label><input type="email" id="le" value="demo@fitcoach.ai" placeholder="toi@exemple.fr"/></div>
-        <div class="f"><label>Mot de passe</label><input type="password" id="lp" value="demo1234" placeholder="••••••••"/></div>
+        <div class="f"><label>Email</label><input type="email" id="le" placeholder="toi@exemple.fr"/></div>
+        <div class="f"><label>Mot de passe</label><input type="password" id="lp" placeholder="••••••••"/></div>
         <button class="btn bg" style="width:100%;border-radius:10px;padding:12px;margin-top:4px;font-size:14px" onclick="doLogin()">Se connecter →</button>
-        <div class="sw">Pas de compte ? <a onclick="sw(true)">Créer un compte</a></div>
-        <div class="sw" style="margin-top:8px"><a onclick="location.href='index.html'" style="color:var(--t2)">← Retour à l'accueil</a></div>
+        <div class="sw" style="margin-top:10px">Pas de compte ? <a onclick="sw(true)">S'inscrire</a></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd);text-align:center">
+          <p style="font-size:12px;color:var(--t2);margin-bottom:10px">Tu veux voir comment ça marche ?</p>
+          <button class="btn bgh" style="width:100%;border-radius:10px;padding:10px;font-size:13px" onclick="startDemo2()">▶ Lancer la démo</button>
+        </div>
+        <div class="sw" style="margin-top:10px"><a onclick="location.href='index.html'" style="color:var(--t2)">← Retour à l'accueil</a></div>
       </div>
       <div id="rv" style="display:none">
         <div class="box-h">Crée ton compte</div>
-        <p class="box-s">Crée ton compte gratuitement.</p>
+        <p class="box-s">Rejoins FitCoach AI et commence à te transformer.</p>
         <button class="goog" onclick="qLogin()"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Continuer avec Google</button>
         <div class="div">ou</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -354,7 +358,6 @@ button,input,select{font-family:var(--f)}
     </div>
   </div>
 </div>
-
 <!-- ONBOARDING -->
 <div class="pg" id="pg-ob">
   <div class="wrap">
@@ -363,7 +366,7 @@ button,input,select{font-family:var(--f)}
       <div class="ob-steps"><div class="ob-s now" id="os1"></div><div class="ob-s" id="os2"></div><div class="ob-s" id="os3"></div></div>
       <div id="ob1">
         <div class="box-h">Ton profil physique</div>
-        <p class="box-s">Ces données calculent ton programme et ton déficit calorique.</p>
+        <p class="box-s">Ces données calculent ton programme personnalisé.</p>
         <div class="r3">
           <div class="f"><label>Poids (kg)</label><input type="number" id="ow" value="87" oninput="calcIMC()"/></div>
           <div class="f"><label>Taille (cm)</label><input type="number" id="oh" value="178" oninput="calcIMC()"/></div>
@@ -384,20 +387,66 @@ button,input,select{font-family:var(--f)}
         </div>
       </div>
       <div id="ob3" style="display:none">
-        <div class="box-h">Ton programme est prêt 🎉</div>
-        <p class="box-s">Basé sur ton profil, voilà ce qu'on va faire ensemble.</p>
+        <div class="box-h">Ton programme est prêt !</div>
+        <p class="box-s">Voilà ce qu'on va construire ensemble.</p>
         <div style="background:var(--s2);border-radius:10px;padding:14px;margin-bottom:14px;display:flex;flex-direction:column;gap:9px">
           <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--t2)">Programme</span><span style="font-size:13px;font-weight:600" id="sp">—</span></div>
           <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--t2)">Séances / semaine</span><span style="font-size:13px;font-weight:600" id="sf">—</span></div>
           <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--t2)">Déficit calorique</span><span style="font-size:13px;font-weight:600;color:var(--ac)" id="sd">—</span></div>
           <div style="display:flex;justify-content:space-between"><span style="font-size:13px;color:var(--t2)">Objectif poids</span><span style="font-size:13px;font-weight:600;color:var(--ac)" id="sw2">—</span></div>
         </div>
-        <div style="background:var(--a3);border:1px solid rgba(200,245,90,.2);border-radius:10px;padding:11px 14px;margin-bottom:18px">
-          <p style="font-size:13px;color:var(--ac);font-weight:500">✓ Accès immédiat à toutes les fonctionnalités</p>
-          <p style="font-size:12px;color:var(--t2);margin-top:3px">Sans engagement, annulation à tout moment.</p>
-        </div>
-        <button class="btn bg" style="width:100%;border-radius:10px;padding:12px;font-size:14px" onclick="startApp()">Voir mon planning →</button>
+        <button class="btn bg" style="width:100%;border-radius:10px;padding:12px;font-size:14px" onclick="goPaywall()">Voir mes tarifs et commencer →</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYWALL -->
+<div class="pg" id="pg-pay">
+  <div class="wrap" style="background:var(--bg);position:relative;overflow:hidden;align-items:flex-start;padding-top:40px">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(200,245,90,.06),transparent)"></div>
+    <div style="position:relative;z-index:1;width:100%;max-width:760px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:32px">
+        <div style="font-family:var(--fd);font-size:17px;font-weight:700;margin-bottom:16px">⚡ Fit<em style="color:var(--ac);font-style:normal">Coach</em> AI</div>
+        <h2 style="font-family:var(--fd);font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:8px">Choisis ton abonnement</h2>
+        <p style="font-size:14px;color:var(--t2)">Résilie à tout moment. Paiement sécurisé via Stripe.</p>
+      </div>
+      <!-- Grille 2 plans -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+        <!-- Essentiel -->
+        <div style="background:var(--sur);border:1px solid var(--bd);border-radius:20px;padding:28px;cursor:pointer;transition:border .2s" onmouseenter="this.style.borderColor='var(--b2)'" onmouseleave="this.style.borderColor='var(--bd)'">
+          <div style="font-family:var(--fd);font-size:20px;font-weight:700;margin-bottom:4px">Essentiel</div>
+          <div style="font-size:13px;color:var(--t2);margin-bottom:18px">Séances + coaching IA</div>
+          <div style="font-family:var(--fd);font-size:38px;font-weight:800;letter-spacing:-2px;line-height:1">29.99€</div>
+          <div style="font-size:12px;color:var(--t2);margin:4px 0 18px">/ mois — ou 269€/an</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:22px">
+            <li style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="color:var(--ac);font-weight:700">✓</span>Séances illimitées</li>
+            <li style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="color:var(--ac);font-weight:700">✓</span>Planning 12 semaines</li>
+            <li style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="color:var(--ac);font-weight:700">✓</span>Analyse posturale IA</li>
+            <li style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="color:var(--ac);font-weight:700">✓</span>Coach vocal IA en direct</li>
+            <li style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="color:var(--ac);font-weight:700">✓</span>Suivi progression</li>
+            <li style="font-size:13px;color:var(--t3);display:flex;align-items:center;gap:8px"><span style="color:var(--t3)">×</span>Analyse calorique photo</li>
+          </ul>
+          <button class="btn bgh" style="width:100%;border-radius:10px;padding:12px;font-size:14px" onclick="subscribe('essentiel')">Choisir Essentiel →</button>
+        </div>
+        <!-- Premium -->
+        <div style="background:linear-gradient(135deg,rgba(200,245,90,.06),var(--sur));border:2px solid rgba(200,245,90,.4);border-radius:20px;padding:28px;position:relative;cursor:pointer">
+          <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--ac);color:#000;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap">⭐ Le plus complet</div>
+          <div style="font-family:var(--fd);font-size:20px;font-weight:700;margin-bottom:4px">Premium</div>
+          <div style="font-size:13px;color:var(--t2);margin-bottom:18px">Tout inclus + nutrition</div>
+          <div style="font-family:var(--fd);font-size:38px;font-weight:800;letter-spacing:-2px;line-height:1;color:var(--ac)">36.99€</div>
+          <div style="font-size:12px;color:var(--t2);margin:4px 0 18px">/ mois — ou 329€/an</div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:22px">
+            <li style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="color:var(--ac);font-weight:700">✓</span>Tout de l'Essentiel</li>
+            <li style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="color:var(--ac);font-weight:700">✓</span>📸 Analyse calorique photo</li>
+            <li style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="color:var(--ac);font-weight:700">✓</span>Macros + verdict sèche</li>
+            <li style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="color:var(--ac);font-weight:700">✓</span>Alternatives alimentaires IA</li>
+            <li style="font-size:13px;color:var(--t2);display:flex;align-items:center;gap:8px"><span style="color:var(--ac);font-weight:700">✓</span>Coach nutrition en direct</li>
+          </ul>
+          <button class="btn bg" style="width:100%;border-radius:10px;padding:12px;font-size:15px" onclick="subscribe('premium')">Choisir Premium →</button>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:12px;color:var(--t3)">🔒 Paiement sécurisé via Stripe · Résiliation en 1 clic depuis ton espace</div>
     </div>
   </div>
 </div>
@@ -492,7 +541,7 @@ button,input,select{font-family:var(--f)}
           </div>
         </div>
         <div class="cms" id="cms"><div class="typing" id="typing"><span></span><span></span><span></span></div></div>
-        <div class="ciz"><div class="cr"><input class="ci2" id="cin" placeholder="Question au coach..." onkeydown="if(event.key==='Enter')sendMsg()"/><button class="sb" onclick="sendMsg()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div>
+        <div class="ciz"><div class="cr"><input class="ci2" id="cin" placeholder="Parle ou écris au coach..." onkeydown="if(event.key==='Enter')sendMsg()"/><button class="sb" onclick="sendMsg()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div></div>
       </div>
     </div>
   </div>
@@ -690,16 +739,62 @@ function goTab(n){
 
 // ═══ AUTH ═══════════════════════════════════════
 function sw(reg){document.getElementById('lv').style.display=reg?'none':'block';document.getElementById('rv').style.display=reg?'block':'none';}
+function doReg(){
+  const n=document.getElementById('rp').value;if(!n)return;
+  P.prenom=n;P.isPaid=true;document.getElementById('nav-av').textContent=n.charAt(0).toUpperCase();show('ob');
+}
 function doLogin(){
   const e=document.getElementById('le').value;if(!e)return;
   P.prenom=e.split('@')[0].charAt(0).toUpperCase()+e.split('@')[0].slice(1);
-  document.getElementById('nav-av').textContent=P.prenom.charAt(0);show('ob');
+  P.isPaid=true;
+  document.getElementById('nav-av').textContent=P.prenom.charAt(0);
+  show('ob');
 }
-function doReg(){
-  const n=document.getElementById('rp').value;if(!n)return;
-  P.prenom=n;document.getElementById('nav-av').textContent=n.charAt(0).toUpperCase();show('ob');
+function qLogin(){
+  P.prenom='Marc';P.isPaid=true;
+  document.getElementById('nav-av').textContent='M';
+  show('ob');
 }
-function qLogin(){P.prenom='Marc';document.getElementById('nav-av').textContent='M';show('ob');}
+
+// Démo : profil par défaut, va directement dans l'app sans paiement
+function startDemo2(){
+  P.prenom='Toi';P.poids=80;P.taille=175;P.age=28;
+  P.imc='26.1';P.niveau='intermediaire';P.freq='3';P.obj='perte';
+  P.bmr=1760;P.tdee=2728;P.deficit=2182;P.isPaid=false;P.isDemo=true;
+  dailyBudget=P.deficit;
+  document.getElementById('nav-av').textContent='D';
+  document.getElementById('bobj').textContent=dailyBudget;
+  buildProg2();seedDemo();show('app');
+  document.getElementById('nav-av').style.background='linear-gradient(135deg,#4a9eff,#a78bfa)';
+  const demoBadge=document.querySelector('.pro');
+  if(demoBadge){demoBadge.textContent='Démo';demoBadge.style.background='rgba(74,158,255,.1)';demoBadge.style.borderColor='rgba(74,158,255,.3)';demoBadge.style.color='var(--blue)';}
+  goTab('plan');
+  setTimeout(()=>nutrMsg('Mode démo actif. Tu peux tester toutes les fonctionnalités !'),800);
+}
+
+// Après démo, affiche le paywall
+function goPaywall(){
+  // Calcule d'abord le résumé ob3
+  const oL={perte:'Perte de poids',muscle:'Prise de muscle',cardio:'Endurance',forme:'Remise en forme'};
+  const tp=P.obj==='perte'?(P.poids-Math.round(P.tdee*.2*84/7700)).toFixed(1):(P.poids+3).toFixed(1);
+  document.getElementById('sp').textContent=oL[P.obj];
+  document.getElementById('sf').textContent=P.freq+' séances/sem';
+  document.getElementById('sd').textContent=P.deficit+' kcal/j';
+  document.getElementById('sw2').textContent=P.poids+' → '+tp+' kg';
+  show('pay');
+}
+
+function subscribe(plan){
+  P.isPaid=true;P.plan=plan;P.isDemo=false;
+  // En prod : appel Stripe ici
+  // Pour l'instant on va directement dans l'app
+  if(!P.prenom){P.prenom='Utilisateur';}
+  document.getElementById('nav-av').textContent=P.prenom.charAt(0).toUpperCase();
+  const badge=document.querySelector('.pro');
+  if(badge){badge.textContent=plan==='premium'?'Premium ✓':'Essentiel ✓';badge.style.background='var(--a3)';badge.style.borderColor='rgba(200,245,90,.2)';badge.style.color='var(--ac)';}
+  buildProg2();seedDemo();show('app');goTab('plan');
+  setTimeout(()=>nutrMsg('Bienvenue ! Ton abonnement est actif. On commence quand tu veux !'),800);
+}
 
 // ═══ ONBOARDING ════════════════════════════════
 function calcIMC(){
@@ -738,7 +833,7 @@ function obBack(){
 function startApp(){
   document.getElementById('em-w').value=P.poids;
   buildProg2();seedDemo();show('app');goTab('plan');
-  setTimeout(()=>nutrMsg('Salut ! Je suis ton coach nutrition. Prends ton plat en photo et je t\'analyse ça en secondes — calories, macros, et verdict sèche. 📸'),800);
+  setTimeout(()=>nutrMsg('Salut ! Je suis ton coach nutrition. Prends ton plat en photo, je t'analyse ça en quelques secondes.'),800);
 }
 
 // ═══ PLANNING ══════════════════════════════════
@@ -1877,7 +1972,13 @@ function startExo() {
   startTimer(duration);
   // Message coach vocal
   const pose = getExoPose(exo.n);
-  const msg = `C'est parti ! ${exo.n}, série ${curSet} sur ${exo.s}. ${pose.tips}`;
+  const startMsgs = [
+    `Allez, c'est parti ! ${exo.n} — série ${curSet}/${exo.s}. ${pose.tips}`,
+    `Go ! ${exo.n}, série ${curSet} sur ${exo.s}. ${pose.tips}`,
+    `C'est ton moment ! ${exo.n} — série ${curSet}. ${pose.tips}`,
+    `En place ! ${exo.n}, série ${curSet}/${exo.s}. ${pose.tips}`,
+  ];
+  const msg = startMsgs[Math.floor(Math.random()*startMsgs.length)];
   coachMsg(msg);
 }
 
@@ -2065,37 +2166,42 @@ async function startCam(){
     });
     videoEl=document.createElement('video');
     videoEl.srcObject=stream;videoEl.autoplay=true;videoEl.playsInline=true;videoEl.muted=true;
-    videoEl.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none';
+    // Vidéo visible EN FOND, canvas par-dessus pour le squelette
+    videoEl.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)';
     document.getElementById('cam-z').prepend(videoEl);
     await videoEl.play().catch(()=>{});
-    camOn=true;activateOv();
-    try{await loadMediaPipe();}catch(e){console.warn('MP fallback:',e.message);}
+    camOn=true;
+    sizeCv();
+    activateOv();
+    // Tente MediaPipe en arrière-plan (optionnel)
+    try{await loadMediaPipe();}catch(e){console.warn('MP non dispo:',e.message);}
     if(window.Pose&&window.Camera){
-      document.getElementById('cbg').querySelector('span').textContent='🧠 MediaPipe IA';
+      document.getElementById('cbg').querySelector('span').textContent='🧠 IA active';
       const pose=new Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
       pose.setOptions({modelComplexity:1,smoothLandmarks:true,enableSegmentation:false,minDetectionConfidence:0.5,minTrackingConfidence:0.5});
       pose.onResults(results=>{
         if(!cx||!cv)return;
+        // Efface seulement le canvas (la vidéo reste visible en dessous)
         cx.clearRect(0,0,cv.width,cv.height);
-        cx.save();cx.translate(cv.width,0);cx.scale(-1,1);cx.drawImage(results.image,0,0,cv.width,cv.height);cx.restore();
         if(results.poseLandmarks){
-          const m=results.poseLandmarks.map(lm=>({...lm,x:1-lm.x}));
-          drawMPSkeleton(m,analyzePosture(m)||[]);
+          // Les landmarks sont déjà miroir (vidéo CSS miroir)
+          drawMPSkeleton(results.poseLandmarks, analyzePosture(results.poseLandmarks)||[]);
         }
       });
-      const camera=new Camera(videoEl,{onFrame:async()=>{try{await pose.send({image:videoEl});}catch(e){}},width:1280,height:720});
+      const camera=new Camera(videoEl,{onFrame:async()=>{try{await pose.send({image:videoEl});}catch(e){}},width:640,height:480});
       camera.start();
     } else {
+      // Fallback : squelette simulé par-dessus la vraie caméra
       document.getElementById('cbg').querySelector('span').textContent='📷 Caméra active';
-      videoEl.style.opacity='1';
       repBuffer=[];
-      (function cf(){
+      (function camLoop(){
         if(!camOn)return;
-        if(!cx||!cv){requestAnimationFrame(cf);return;}
+        if(!cx||!cv){requestAnimationFrame(camLoop);return;}
+        // Efface uniquement le canvas (vidéo reste visible en fond)
         cx.clearRect(0,0,cv.width,cv.height);
-        cx.save();cx.translate(cv.width,0);cx.scale(-1,1);cx.drawImage(videoEl,0,0,cv.width,cv.height);cx.restore();
         skelAnim+=.007;const ph=(Math.sin(skelAnim)+1)/2;
-        drawDemoSkel(ph);updAngsDemo(ph);requestAnimationFrame(cf);
+        drawDemoSkel(ph);updAngsDemo(ph);
+        requestAnimationFrame(camLoop);
       })();
     }
   }catch(e){console.warn('Cam error:',e);startDemo();}
@@ -2135,17 +2241,42 @@ function clearErr(){errState=false;document.getElementById('cb').classList.remov
 
 function checkRep(){
   const t=curExos[curExo]?.r;if(!t)return;
-  if(reps===Math.floor(t/2))coachMsg(`Mi-chemin ! **${reps}/${t}** reps. Continue ! 🔥`);
+  if(reps>0 && reps===Math.floor(t/2)){
+    const midMsgs=["Mi-chemin ! "+reps+" sur "+t+". Lâche pas !","Halfway ! "+reps+"/"+t+" reps, continue sur ta lancée.","T'es à la moitié ! "+reps+" reps. C'est bien, encore "+( t-reps)+" !"];
+    coachMsg(midMsgs[Math.floor(Math.random()*midMsgs.length)]);
+  }
   if(reps>=t)completeSet();
+}
+
+const FIN_SERIE_MSGS = [
+  "C'est fait ! Repose-toi {rest}s, souffle bien.",
+  "Série {done} terminée, c'est du solide. {rest}s de récup.",
+  "Nickel ! Tu mérites ces {rest}s de repos.",
+  "Bien joué ! {rest}s et on repart plus fort.",
+  "Parfait, {done} séries dans la poche. Souffle {rest}s.",
+];
+const FIN_EXO_MSGS = [
+  "Exercice terminé, tu gères ! On passe à la suite.",
+  "Excellent boulot ! Prochain exercice dans 3 secondes.",
+  "C'est dans la boite. Prépare-toi pour le suivant !",
+  "Top ! T'as assuré. On continue avec l'exercice suivant.",
+  "Bien joué ! Reste debout, souffle, on enchaîne.",
+];
+
+function randMsg(arr, vars={}) {
+  let msg = arr[Math.floor(Math.random()*arr.length)];
+  for(const [k,v] of Object.entries(vars)) msg = msg.replace('{'+k+'}', v);
+  return msg;
 }
 
 function completeSet(){
   clearInterval(anlsInt);stopTimer();
   if(demoId){cancelAnimationFrame(demoId);demoId=null;}
   if(curSet<curExos[curExo].s){
+    const doneSerie = curSet;
     curSet++;reps=0;updNavXi();
-    coachMsg(`🔥 Série **${curSet-1}/${curExos[curExo].s}** terminée ! Repos **${curExos[curExo].rest}s** — puis on repart !`);
-    // Timer de repos puis écran de pose
+    const msg = randMsg(FIN_SERIE_MSGS, {rest: curExos[curExo].rest, done: doneSerie});
+    coachMsg(msg);
     startRestTimer(curExos[curExo].rest, ()=>{
       showPoseScreen(curExos[curExo], startExo);
     });
@@ -2156,11 +2287,18 @@ function completeSet(){
 }
 
 function nextExo(){
+  const doneExo = curExos[curExo];
   curExo++;curSet=1;reps=0;repBuffer=[];repPhase='up';
-  if(curExo>=curExos.length){openEnd();return;}
+  if(curExo>=curExos.length){
+    coachMsg("C'est fini ! Tu as tout déchiré aujourd'hui. Regarde le bilan de ta séance !");
+    setTimeout(openEnd, 2000);
+    return;
+  }
   buildEl();updProg();updNavXi();
-  // Affiche l'écran de pose pour le prochain exercice
-  showPoseScreen(curExos[curExo], startExo);
+  const nextName = curExos[curExo].n;
+  const msg = randMsg(FIN_EXO_MSGS) + ` Next up : ${nextName}.`;
+  coachMsg(msg);
+  setTimeout(()=>showPoseScreen(curExos[curExo], startExo), 1500);
 }
 
 function updNavXi(){if(curExo<curExos.length)document.getElementById('nav-xi').textContent=curExos[curExo].n;}
@@ -2205,86 +2343,123 @@ function updProg(){const p=Math.round(curExo/curExos.length*100);document.getEle
 // ════════════════════════════════════════
 // COACH VOCAL + MIC
 // ════════════════════════════════════════
+// ════ COACH VOCAL & MIC ════
 let synth = window.speechSynthesis;
 let voiceEnabled = true;
 let micOn = false;
 let recognition = null;
-let lastSpoken = '';
+let frVoice = null;
+let speakQueue = [];
+let isSpeaking = false;
 
-// Parle à voix haute
+// ── VOIX : sélectionne la meilleure voix française ──
+function loadVoices() {
+  if(!synth) return;
+  const pick = () => {
+    const v = synth.getVoices();
+    // Priorité : Google Français > voix système fr-FR > fr
+    frVoice = v.find(x => x.name.includes('Google') && x.lang.startsWith('fr'))
+           || v.find(x => x.lang === 'fr-FR' && !x.name.includes('compact'))
+           || v.find(x => x.lang === 'fr-FR')
+           || v.find(x => x.lang.startsWith('fr'))
+           || null;
+    if(frVoice) console.log('Voix choisie:', frVoice.name);
+  };
+  pick();
+  if(synth.onvoiceschanged !== undefined) synth.onvoiceschanged = pick;
+}
+loadVoices();
+
 function speak(text) {
   if(!voiceEnabled || !synth) return;
-  // Nettoie le texte (supprime markdown)
-  const clean = text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/[📷⚡💪🔥🧘⏱💬📅📈📸🎉👋]/g,'').trim();
-  if(clean === lastSpoken) return; // évite les répétitions
-  lastSpoken = clean;
+  // Nettoie markdown et emojis
+  const clean = text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}]/gu, '')
+    .replace(/[⚡🔥💪📷📈📅📸🎉👋⚠️💡🎤🔊🔇▶]/g, '')
+    .replace(/Next up\s*:/gi, 'Ensuite,')
+    .replace(/\s{2,}/g, ' ').trim();
+  if(!clean || clean.length < 3) return;
+  speakQueue.push(clean);
+  if(!isSpeaking) processQueue();
+}
+
+function processQueue() {
+  if(!speakQueue.length || !synth) { isSpeaking=false; return; }
+  isSpeaking = true;
+  const text = speakQueue.shift();
   synth.cancel();
-  const u = new SpeechSynthesisUtterance(clean);
+  const u = new SpeechSynthesisUtterance(text);
   u.lang = 'fr-FR';
-  u.rate = 1.05;
-  u.pitch = 1.0;
-  u.volume = 0.95;
-  // Cherche une voix française
-  const voices = synth.getVoices();
-  const frVoice = voices.find(v=>v.lang.startsWith('fr')) || voices[0];
+  // Paramètres pour sonner plus naturel :
+  // rate 0.92 = légèrement plus lent, plus posé
+  // pitch 1.1 = légèrement plus aigu, moins robotique
+  u.rate = 0.92;
+  u.pitch = 1.1;
+  u.volume = 1.0;
   if(frVoice) u.voice = frVoice;
+  u.onend = () => { isSpeaking=false; setTimeout(processQueue, 80); };
+  u.onerror = () => { isSpeaking=false; setTimeout(processQueue, 80); };
   synth.speak(u);
 }
 
-// Initialise la reconnaissance vocale
 function initMic() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SpeechRecognition) return;
-  recognition = new SpeechRecognition();
+  if(recognition) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) return;
+  recognition = new SR();
   recognition.lang = 'fr-FR';
   recognition.continuous = false;
-  recognition.interimResults = false;
+  recognition.interimResults = true;
+  recognition.onstart = () => {
+    const btn = document.getElementById('mic-btn');
+    if(btn){ btn.textContent='🔴'; btn.style.background='var(--warn)'; btn.style.color='#fff'; }
+    // Affiche le placeholder "Je t'écoute..."
+    document.getElementById('cin').placeholder = "Je t\'écoute...";
+  };
   recognition.onresult = (e) => {
-    const txt = e.results[0][0].transcript;
-    document.getElementById('cin').value = txt;
-    sendMsg();
-    stopMic();
+    let interim = '', final = '';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById('cin').value = final || interim;
+    if(final) { stopMic(); sendMsg(); }
   };
-  recognition.onerror = () => stopMic();
-  recognition.onend = () => {
-    micOn = false;
-    updateMicBtn();
-  };
+  recognition.onerror = (e) => { console.warn('Mic error:',e.error); stopMic(); };
+  recognition.onend = () => { micOn=false; updateMicBtn(); };
 }
 
 function toggleMic() {
-  if(!recognition) { initMic(); }
-  if(!recognition) { coachMsg('Micro non disponible sur ce navigateur.'); return; }
-  if(micOn) { stopMic(); }
-  else { startMic(); }
+  initMic();
+  if(!recognition) { coachMsg("Désolé, le micro n\'est pas disponible sur ce navigateur. Utilise Chrome."); return; }
+  micOn ? stopMic() : startMic();
 }
 
 function startMic() {
-  synth?.cancel();
+  synth?.cancel(); speakQueue=[];
   micOn = true;
-  recognition.start();
-  updateMicBtn();
-  // Visuel
-  const btn = document.getElementById('mic-btn');
-  if(btn) btn.style.background = 'var(--warn)';
+  try { recognition.start(); } catch(e) { stopMic(); }
 }
 
 function stopMic() {
   micOn = false;
   try { recognition?.stop(); } catch(e) {}
   updateMicBtn();
+  document.getElementById('cin').placeholder = 'Parle ou écris au coach...';
 }
 
 function updateMicBtn() {
   const btn = document.getElementById('mic-btn');
   if(!btn) return;
+  btn.textContent = micOn ? '🔴' : '🎤';
   btn.style.background = micOn ? 'var(--warn)' : 'var(--s2)';
-  btn.title = micOn ? 'Arrêter le micro' : 'Parler au coach';
+  btn.style.color = micOn ? '#fff' : 'var(--t2)';
 }
 
 function toggleVoice() {
   voiceEnabled = !voiceEnabled;
-  synth?.cancel();
+  if(!voiceEnabled) { synth?.cancel(); speakQueue=[]; }
   const btn = document.getElementById('voice-btn');
   if(btn) btn.textContent = voiceEnabled ? '🔊' : '🔇';
 }
@@ -2316,7 +2491,18 @@ function sendMsg(){
 }
 
 async function callAI(msg){
-  const sys=`Tu es Coach Alex, un coach sportif IA expert. Profil utilisateur: ${P.poids}kg, ${P.taille}cm, ${P.age} ans, IMC ${P.imc}, niveau ${P.niveau||'intermediaire'}. Objectif: ${P.obj==='perte'?'perte de poids':'muscle'}. Déficit calorique cible: ${P.deficit} kcal/j. Exercice en cours: ${curExos[curExo]?.n||'séance'}. Série ${curSet}/${curExos[curExo]?.s||1}, ${reps} reps effectuées. RÈGLES: réponds en français, max 2 phrases courtes, direct et motivant. Pas de markdown. Si l'utilisateur mentionne une douleur, propose immédiatement une alternative.`;
+  const sys=`Tu es Alex, un coach sportif. Tu parles exactement comme un vrai ami coach — naturel, humain, direct. Pas robotique du tout.
+
+Contexte: ${P.poids}kg, ${P.taille}cm, ${P.age} ans, niveau ${P.niveau||'intermédiaire'}, objectif ${P.obj==='perte'?'perte de poids':'muscle'}.
+En ce moment: ${curExos[curExo]?.n||'séance'}, série ${curSet}/${curExos[curExo]?.s||1}, ${reps} reps faites.
+
+IMPORTANT:
+- Parle comme un humain, pas une machine. Exemple: "Allez vas-y !" pas "Je t'encourage à continuer."
+- Max 1-2 phrases. Courtes. Directes.
+- Pas de markdown, pas d'astérisques, pas de listes.
+- Si douleur mentionnée → alternative concrète immédiatement.
+- Expressions naturelles : "allez", "top", "nickel", "t'inquiète", "c'est bon", "vas-y", "t'assures".
+- Tu peux faire des blagues légères.`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[...convH.slice(-6),{role:'user',content:msg}]})});
     const d=await r.json();
@@ -2327,7 +2513,7 @@ async function callAI(msg){
 
 async function getFB(msg){
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:`Coach sportif IA. Correction de posture en 1 phrase directe, sans markdown, en français.`,messages:[{role:'user',content:`Erreur détectée pendant ${curExos[curExo]?.n||'exercice'}: ${msg}. Donne une correction en 1 phrase.`}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:`Tu es Alex, coach sportif. Donne une correction de posture en 1 phrase naturelle et bienveillante, en français parlé, sans markdown.`,messages:[{role:'user',content:`Erreur détectée sur ${curExos[curExo]?.n||'exercice'}: ${msg}. 1 phrase de correction directe.`}]})});
     const d=await r.json();
     const rep=d.content?.find(b=>b.type==='text')?.text;
     if(rep){ coachMsg('⚠️ '+rep); }
