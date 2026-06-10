@@ -2162,52 +2162,62 @@ function startDemo(){
 }
 
 async function startCam(){
-  initCv();sizeCv();
+  initCv(); sizeCv();
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:'user',width:{ideal:1280,min:640},height:{ideal:720,min:480},frameRate:{ideal:30}}
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:'user', width:{ideal:1280,min:640}, height:{ideal:720,min:480}, frameRate:{ideal:30}}
     });
-    videoEl=document.createElement('video');
-    videoEl.srcObject=stream;videoEl.autoplay=true;videoEl.playsInline=true;videoEl.muted=true;
-    // Vidéo visible EN FOND, canvas par-dessus pour le squelette
-    videoEl.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)';
+    // Vidéo en fond, visible, miroir CSS
+    videoEl = document.createElement('video');
+    videoEl.srcObject = stream;
+    videoEl.autoplay = true;
+    videoEl.playsInline = true;
+    videoEl.muted = true;
+    videoEl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)';
     document.getElementById('cam-z').prepend(videoEl);
+    await new Promise(r => { videoEl.onloadedmetadata = r; });
     await videoEl.play().catch(()=>{});
-    camOn=true;
+    camOn = true;
     sizeCv();
     activateOv();
-    // Tente MediaPipe en arrière-plan (optionnel)
-    try{await loadMediaPipe();}catch(e){console.warn('MP non dispo:',e.message);}
-    if(window.Pose&&window.Camera){
-      document.getElementById('cbg').querySelector('span').textContent='🧠 IA active';
-      const pose=new Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
-      pose.setOptions({modelComplexity:1,smoothLandmarks:true,enableSegmentation:false,minDetectionConfidence:0.5,minTrackingConfidence:0.5});
-      pose.onResults(results=>{
-        if(!cx||!cv)return;
-        // Efface seulement le canvas (la vidéo reste visible en dessous)
-        cx.clearRect(0,0,cv.width,cv.height);
+
+    // Tente MediaPipe (optionnel, améliore la détection)
+    try{ await loadMediaPipe(); }catch(e){ console.warn('Sans MediaPipe:', e.message); }
+
+    if(window.Pose && window.Camera){
+      document.getElementById('cbg').querySelector('span').textContent = '🧠 IA active';
+      const pose = new Pose({locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
+      pose.setOptions({modelComplexity:1, smoothLandmarks:true, enableSegmentation:false, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
+      pose.onResults(results => {
+        if(!cx || !cv) return;
+        cx.clearRect(0, 0, cv.width, cv.height);
         if(results.poseLandmarks){
-          // Les landmarks sont déjà miroir (vidéo CSS miroir)
           drawMPSkeleton(results.poseLandmarks, analyzePosture(results.poseLandmarks)||[]);
         }
       });
-      const camera=new Camera(videoEl,{onFrame:async()=>{try{await pose.send({image:videoEl});}catch(e){}},width:640,height:480});
-      camera.start();
+      new Camera(videoEl, {
+        onFrame: async() => { try{ await pose.send({image:videoEl}); }catch(e){} },
+        width:640, height:480
+      }).start();
     } else {
-      // Fallback : squelette simulé par-dessus la vraie caméra
-      document.getElementById('cbg').querySelector('span').textContent='📷 Caméra active';
-      repBuffer=[];
+      // Fallback : squelette animé par-dessus la vraie caméra
+      document.getElementById('cbg').querySelector('span').textContent = '📷 Caméra active';
+      repBuffer = [];
       (function camLoop(){
-        if(!camOn)return;
-        if(!cx||!cv){requestAnimationFrame(camLoop);return;}
-        // Efface uniquement le canvas (vidéo reste visible en fond)
-        cx.clearRect(0,0,cv.width,cv.height);
-        skelAnim+=.007;const ph=(Math.sin(skelAnim)+1)/2;
-        drawDemoSkel(ph);updAngsDemo(ph);
+        if(!camOn) return;
+        if(!cx || !cv){ requestAnimationFrame(camLoop); return; }
+        cx.clearRect(0, 0, cv.width, cv.height);
+        skelAnim += .007;
+        const ph = (Math.sin(skelAnim)+1)/2;
+        drawDemoSkel(ph);
+        updAngsDemo(ph);
         requestAnimationFrame(camLoop);
       })();
     }
-  }catch(e){console.warn('Cam error:',e);startDemo();}
+  } catch(e){
+    console.warn('Cam error:', e);
+    startDemo();
+  }
 }
 function activateOv(){
   document.getElementById('ncam').style.display='none';
@@ -2252,18 +2262,18 @@ function checkRep(){
 }
 
 const FIN_SERIE_MSGS = [
-  "C'est fait ! Repose-toi {rest}s, souffle bien.",
-  "Série {done} terminée, c'est du solide. {rest}s de récup.",
-  "Nickel ! Tu mérites ces {rest}s de repos.",
-  "Bien joué ! {rest}s et on repart plus fort.",
-  "Parfait, {done} séries dans la poche. Souffle {rest}s.",
+  "Ouais ! Série {done} dans la poche. Souffle {rest} secondes.",
+  "C'est fait, bien joué. {rest}s de repos et on repart.",
+  "Nickel ! Repose-toi {rest}s, t'as mérité.",
+  "Bien ! Reste debout, souffle {rest} secondes, on repart.",
+  "Série {done} check. {rest}s et t'es reparti.",
 ];
 const FIN_EXO_MSGS = [
-  "Exercice terminé, tu gères ! On passe à la suite.",
-  "Excellent boulot ! Prochain exercice dans 3 secondes.",
-  "C'est dans la boite. Prépare-toi pour le suivant !",
-  "Top ! T'as assuré. On continue avec l'exercice suivant.",
-  "Bien joué ! Reste debout, souffle, on enchaîne.",
+  "Terminé ! Bien joué, on passe à la suite.",
+  "C'est dans la boite. Prochaine exo dans quelques secondes.",
+  "Ouais, t'as assuré ! On enchaîne.",
+  "Top, exercice fini. Reste debout, on continue.",
+  "Bien joué ! Voilà le prochain.",
 ];
 
 function randMsg(arr, vars={}) {
@@ -2394,11 +2404,8 @@ function processQueue() {
   synth.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'fr-FR';
-  // Paramètres pour sonner plus naturel :
-  // rate 0.92 = légèrement plus lent, plus posé
-  // pitch 1.1 = légèrement plus aigu, moins robotique
-  u.rate = 0.92;
-  u.pitch = 1.1;
+  u.rate = 0.88;   // un peu lent = plus naturel, moins précipité
+  u.pitch = 1.08;  // léger pitch = moins robot
   u.volume = 1.0;
   if(frVoice) u.voice = frVoice;
   u.onend = () => { isSpeaking=false; setTimeout(processQueue, 80); };
