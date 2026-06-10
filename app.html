@@ -842,7 +842,12 @@ function qLogin(){
 // Démo : profil par défaut, va directement dans l'app sans paiement
 function startDemo2(){
   show('demo');
-  initDemoCanvas();
+  // Attend que la page soit visible avant d'init le canvas
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      initDemoCanvas();
+    });
+  });
 }
 
 // Rentre dans l'app en mode démo après avoir vu la page démo
@@ -878,7 +883,10 @@ let demoMsgIdx=0;
 function initDemoCanvas(){
   const cv2=document.getElementById('demo-cv');if(!cv2)return;
   if(demoCvId)cancelAnimationFrame(demoCvId);
-  cv2.width=cv2.offsetWidth||600;cv2.height=cv2.offsetHeight||500;
+  // Utilise les dimensions du parent pour la taille
+  const parent = cv2.parentElement;
+  cv2.width = parent.offsetWidth || window.innerWidth/2;
+  cv2.height = parent.offsetHeight || window.innerHeight - 56;
   const ctx2=cv2.getContext('2d');
   // Fond dégradé
   const grad=ctx2.createLinearGradient(0,0,0,cv2.height);
