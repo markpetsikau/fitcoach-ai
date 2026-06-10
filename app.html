@@ -345,59 +345,57 @@ button,input,select{font-family:var(--f)}
 
 <!-- DÉMO -->
 <div class="pg" id="pg-demo">
-  <nav style="height:56px;background:var(--sur);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 24px;flex-shrink:0">
+  <nav style="height:56px;background:var(--sur);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 24px;flex-shrink:0;z-index:10">
     <div style="font-family:var(--fd);font-size:16px;font-weight:700;margin-right:auto">⚡ Fit<em style="color:var(--ac);font-style:normal">Coach</em> AI</div>
     <button class="btn bgh" style="font-size:13px;padding:8px 18px;border-radius:100px" onclick="show('auth')">Se connecter</button>
   </nav>
-  <div class="demo-hero">
-    <!-- Gauche : pitch -->
-    <div class="demo-left">
-      <div class="demo-badge"><div style="width:6px;height:6px;border-radius:50%;background:var(--ac);animation:pulse 1.5s infinite"></div>Démo interactive</div>
-      <div class="demo-title">Vois ce que<em>ton coach IA</em>peut faire.</div>
-      <div class="demo-feats">
-        <div class="demo-feat"><div class="demo-feat-ico">📷</div><span>Détection de corps en temps réel — 33 points analysés</span></div>
-        <div class="demo-feat"><div class="demo-feat-ico">🔢</div><span>Comptage automatique de tes répétitions</span></div>
-        <div class="demo-feat"><div class="demo-feat-ico">🎤</div><span>Coach vocal — il te parle, tu lui réponds</span></div>
-        <div class="demo-feat"><div class="demo-feat-ico">⚠️</div><span>Corrections de posture en direct</span></div>
+  <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:0;overflow:hidden">
+    <!-- Gauche -->
+    <div style="display:flex;flex-direction:column;justify-content:center;padding:48px;gap:22px;overflow-y:auto">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:var(--a3);border:1px solid rgba(200,245,90,.3);padding:5px 14px;border-radius:100px;font-size:12px;color:var(--ac);font-family:var(--fm);width:fit-content">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--ac);animation:pulse 1.5s infinite"></div>
+        Démo interactive
       </div>
-      <!-- Mini chat démo -->
-      <div class="demo-chat">
-        <div class="demo-av">🤖</div>
+      <div style="font-family:var(--fd);font-size:clamp(28px,3.5vw,48px);font-weight:800;letter-spacing:-2px;line-height:1.05">
+        Vois ce que<br><em style="color:var(--ac);font-style:normal">ton coach IA</em><br>peut faire.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--t2)"><div style="width:36px;height:36px;border-radius:10px;background:var(--a3);border:1px solid rgba(200,245,90,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📷</div>Détection de corps — 33 points analysés en temps réel</div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--t2)"><div style="width:36px;height:36px;border-radius:10px;background:var(--a3);border:1px solid rgba(200,245,90,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔢</div>Comptage automatique de tes répétitions</div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--t2)"><div style="width:36px;height:36px;border-radius:10px;background:var(--a3);border:1px solid rgba(200,245,90,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🎤</div>Coach vocal — il te parle, tu lui réponds</div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--t2)"><div style="width:36px;height:36px;border-radius:10px;background:var(--a3);border:1px solid rgba(200,245,90,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⚠️</div>Corrections de posture en direct</div>
+      </div>
+      <!-- Chat animé -->
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:14px;padding:14px;display:flex;align-items:flex-start;gap:10px">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--blue));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🤖</div>
         <div>
-          <div class="demo-msg" id="demo-chat-msg">Salut ! Je suis Alex, ton coach. Lance la démo pour voir comment je travaille !</div>
-          <div style="font-size:11px;color:var(--t3);margin-top:5px;font-family:var(--fm)" id="demo-time">maintenant</div>
+          <div style="font-size:13px;color:var(--tx);line-height:1.55" id="demo-chat-msg">Salut ! Je suis Alex. Lance la démo pour voir comment je coache !</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:5px;font-family:var(--fm)">maintenant</div>
         </div>
       </div>
-      <div class="demo-btns">
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
         <button class="btn bg" style="font-size:15px;padding:14px 32px;border-radius:100px" onclick="enterDemo()">▶ Essayer maintenant</button>
         <button class="btn bgh" style="font-size:14px;padding:14px 24px;border-radius:100px" onclick="show('auth')">S'abonner →</button>
       </div>
       <div style="display:flex;gap:20px;flex-wrap:wrap">
-        <div class="demo-stat">💪 <strong>+3 200</strong> utilisateurs actifs</div>
-        <div class="demo-stat">⭐ <strong>4.8/5</strong> satisfaction</div>
-        <div class="demo-stat">🏆 <strong>−12kg</strong> en moyenne</div>
+        <div style="font-size:12px;color:var(--t3)">💪 <strong style="color:var(--t2)">+3 200</strong> utilisateurs</div>
+        <div style="font-size:12px;color:var(--t3)">⭐ <strong style="color:var(--t2)">4.8/5</strong> satisfaction</div>
+        <div style="font-size:12px;color:var(--t3)">🏆 <strong style="color:var(--t2)">−12kg</strong> en moyenne</div>
       </div>
     </div>
-    <!-- Droite : canvas squelette animé -->
-    <div class="demo-right">
-      <canvas id="demo-cv" class="demo-canvas"></canvas>
-      <div class="demo-overlay">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          <div style="background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border:1px solid var(--b2);padding:5px 10px;border-radius:20px;font-size:11px;color:var(--ac);font-family:var(--fm);display:flex;align-items:center;gap:6px">
-            <div style="width:6px;height:6px;border-radius:50%;background:var(--ac);animation:pulse 1.5s infinite"></div>
-            Détection IA active
+    <!-- Droite : canvas -->
+    <div style="background:#0a0e14;position:relative;overflow:hidden" id="demo-right">
+      <canvas id="demo-cv" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;background:linear-gradient(transparent,rgba(8,10,13,.85))">
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <div style="background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border:1px solid rgba(200,245,90,.3);padding:5px 10px;border-radius:20px;font-size:11px;color:var(--ac);font-family:var(--fm);display:flex;align-items:center;gap:6px">
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--ac);animation:pulse 1.5s infinite"></div>IA active
           </div>
           <div style="background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border:1px solid var(--b2);padding:5px 10px;border-radius:20px;font-size:11px;color:var(--tx);font-family:var(--fm)" id="demo-exo-badge">Squat — Série 1/3</div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:flex-end">
-          <div>
-            <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Genoux</div>
-            <div style="font-size:20px;font-weight:600;font-family:var(--fm);color:var(--ac)" id="demo-angle">90°</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:11px;color:var(--t2);margin-bottom:2px">Reps</div>
-            <div style="font-size:32px;font-weight:700;font-family:var(--fm);color:var(--ac)" id="demo-reps">0</div>
-          </div>
+          <div><div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Angle genoux</div><div style="font-size:22px;font-weight:700;font-family:var(--fm);color:var(--ac)" id="demo-angle">90°</div></div>
+          <div style="text-align:right"><div style="font-size:11px;color:var(--t2);margin-bottom:2px">Reps</div><div style="font-size:36px;font-weight:700;font-family:var(--fm);color:var(--ac)" id="demo-reps">0</div></div>
         </div>
       </div>
     </div>
@@ -842,12 +840,7 @@ function qLogin(){
 // Démo : profil par défaut, va directement dans l'app sans paiement
 function startDemo2(){
   show('demo');
-  // Attend que la page soit visible avant d'init le canvas
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      initDemoCanvas();
-    });
-  });
+  setTimeout(initDemoCanvas, 150);
 }
 
 // Rentre dans l'app en mode démo après avoir vu la page démo
@@ -869,78 +862,87 @@ function enterDemo(){
   },400);
 }
 
-// Canvas animé sur la page démo
+// Canvas animé page démo
 let demoCvAnim=0, demoCvId=null, demoReps=0, demoRepPhase='up';
-const DEMO_MSGS = [
-  "Descends encore un peu, t'es presque à 90° !",
-  "Parfait ! Genoux bien dans l'axe, continue.",
-  "Allez, encore une ! Tu gères.",
-  "Super forme, le dos est bien droit.",
-  "Voilà, c'est exactement comme ça qu'il faut faire !",
-];
-let demoMsgIdx=0;
+let demoMsgIdx=0, demoMsgInt=null, demoExoInt=null;
 
 function initDemoCanvas(){
-  const cv2=document.getElementById('demo-cv');if(!cv2)return;
-  if(demoCvId)cancelAnimationFrame(demoCvId);
-  // Utilise les dimensions du parent pour la taille
-  const parent = cv2.parentElement;
-  cv2.width = parent.offsetWidth || window.innerWidth/2;
-  cv2.height = parent.offsetHeight || window.innerHeight - 56;
+  const cv2=document.getElementById('demo-cv');
+  if(!cv2){ console.error('demo-cv not found'); return; }
+  if(demoCvId){ cancelAnimationFrame(demoCvId); demoCvId=null; }
+  if(demoMsgInt){ clearInterval(demoMsgInt); }
+  if(demoExoInt){ clearInterval(demoExoInt); }
+
+  const right=document.getElementById('demo-right');
+  const W=right?right.clientWidth:window.innerWidth/2;
+  const H=right?right.clientHeight:(window.innerHeight-56);
+  cv2.width=Math.max(W,100);
+  cv2.height=Math.max(H,200);
+  console.log('Canvas size:',cv2.width,'x',cv2.height);
+
   const ctx2=cv2.getContext('2d');
-  // Fond dégradé
-  const grad=ctx2.createLinearGradient(0,0,0,cv2.height);
-  grad.addColorStop(0,'#0a0e14');grad.addColorStop(1,'#050709');
-
-  // Cycle de messages coach
-  const msgEl=document.getElementById('demo-chat-msg');
-  const msgInt=setInterval(()=>{
-    if(!document.getElementById('pg-demo').classList.contains('on')){clearInterval(msgInt);return;}
-    demoMsgIdx=(demoMsgIdx+1)%DEMO_MSGS.length;
-    if(msgEl) msgEl.textContent=DEMO_MSGS[demoMsgIdx];
-  },2800);
-
-  let exoNames=['Squat — Série 1/3','Pompes — Série 2/3','Fentes — Série 1/2'];
+  const MSGS=[
+    "Allez vas-y, descends encore un peu !",
+    "Parfait, genoux dans l'axe. Continue.",
+    "T'as bien le dos droit, nickel !",
+    "Encore une rep, t'es chaud !",
+    "Super forme, on lâche rien !",
+    "Voilà, c'est exactement comme ça !",
+  ];
+  const EXOS=['Squat — Série 1/3','Pompes — Série 2/3','Fentes — Série 1/2','Gainage — Série 3/3'];
   let exoIdx=0;
-  const exoInt=setInterval(()=>{
-    if(!document.getElementById('pg-demo').classList.contains('on')){clearInterval(exoInt);return;}
-    exoIdx=(exoIdx+1)%exoNames.length;
+
+  demoMsgInt=setInterval(()=>{
+    if(!document.getElementById('pg-demo').classList.contains('on')){clearInterval(demoMsgInt);return;}
+    demoMsgIdx=(demoMsgIdx+1)%MSGS.length;
+    const el=document.getElementById('demo-chat-msg');
+    if(el) el.textContent=MSGS[demoMsgIdx];
+  },2500);
+
+  demoExoInt=setInterval(()=>{
+    if(!document.getElementById('pg-demo').classList.contains('on')){clearInterval(demoExoInt);return;}
+    exoIdx=(exoIdx+1)%EXOS.length;
     const el=document.getElementById('demo-exo-badge');
-    if(el) el.textContent=exoNames[exoIdx];
-  },5000);
+    if(el) el.textContent=EXOS[exoIdx];
+  },4000);
 
-  (function demoLoop(){
+  (function loop(){
     if(!document.getElementById('pg-demo').classList.contains('on')){demoCvId=null;return;}
-    demoCvAnim+=.012;
+    demoCvAnim+=0.014;
     const ph=(Math.sin(demoCvAnim)+1)/2;
-    const W=cv2.width,H=cv2.height,cx2=W*.5;
+    const CX=cv2.width/2, W2=cv2.width, H2=cv2.height;
 
-    ctx2.fillStyle=grad;ctx2.fillRect(0,0,W,H);
+    // Fond
+    ctx2.fillStyle='#080a0d';
+    ctx2.fillRect(0,0,W2,H2);
 
-    // Grille de fond
-    ctx2.strokeStyle='rgba(200,245,90,.04)';ctx2.lineWidth=1;
-    for(let x=0;x<W;x+=50){ctx2.beginPath();ctx2.moveTo(x,0);ctx2.lineTo(x,H);ctx2.stroke();}
-    for(let y=0;y<H;y+=50){ctx2.beginPath();ctx2.moveTo(0,y);ctx2.lineTo(W,y);ctx2.stroke();}
+    // Grille subtile
+    ctx2.strokeStyle='rgba(200,245,90,.035)';ctx2.lineWidth=1;
+    for(let x=0;x<W2;x+=48){ctx2.beginPath();ctx2.moveTo(x,0);ctx2.lineTo(x,H2);ctx2.stroke();}
+    for(let y=0;y<H2;y+=48){ctx2.beginPath();ctx2.moveTo(0,y);ctx2.lineTo(W2,y);ctx2.stroke();}
 
-    // Calcule les points squelette
-    const sq=Math.sin(demoCvAnim*0.8);
+    // Squelette animé (squat)
+    const sq=Math.sin(demoCvAnim);
     const pts={
-      nose:{x:cx2,y:H*.1},
-      ls:{x:cx2-W*.12,y:H*(.24+sq*.04)},rs:{x:cx2+W*.12,y:H*(.24+sq*.04)},
-      le:{x:cx2-W*.2,y:H*(.34+sq*.03)},re:{x:cx2+W*.2,y:H*(.34+sq*.03)},
-      lw:{x:cx2-W*.22,y:H*(.46+sq*.04)},rw:{x:cx2+W*.22,y:H*(.46+sq*.04)},
-      lh:{x:cx2-W*.09,y:H*(.52+sq*.1)},rh:{x:cx2+W*.09,y:H*(.52+sq*.1)},
-      lk:{x:cx2-W*(.11-sq*.03),y:H*(.68+sq*.04)},rk:{x:cx2+W*(.11-sq*.03),y:H*(.68+sq*.04)},
-      la:{x:cx2-W*.1,y:H*.86},ra:{x:cx2+W*.1,y:H*.86},
+      nose:{x:CX,y:H2*.10},
+      ls:{x:CX-W2*.13,y:H2*(.24+sq*.03)},
+      rs:{x:CX+W2*.13,y:H2*(.24+sq*.03)},
+      le:{x:CX-W2*.22,y:H2*(.35+sq*.02)},
+      re:{x:CX+W2*.22,y:H2*(.35+sq*.02)},
+      lw:{x:CX-W2*.24,y:H2*(.47+sq*.02)},
+      rw:{x:CX+W2*.24,y:H2*(.47+sq*.02)},
+      lh:{x:CX-W2*.09,y:H2*(.52+sq*.09)},
+      rh:{x:CX+W2*.09,y:H2*(.52+sq*.09)},
+      lk:{x:CX-W2*.10,y:H2*(.67+sq*.05)},
+      rk:{x:CX+W2*.10,y:H2*(.67+sq*.05)},
+      la:{x:CX-W2*.09,y:H2*.86},
+      ra:{x:CX+W2*.09,y:H2*.86},
     };
-
-    // Connexions
-    const conns=[['ls','rs'],['ls','lh'],['rs','rh'],['lh','rh'],['ls','le'],['le','lw'],['rs','re'],['re','rw'],['lh','lk'],['lk','la'],['rh','rk'],['rk','ra'],['nose','ls'],['nose','rs']];
-    ctx2.lineWidth=3;ctx2.lineCap='round';
-    ctx2.shadowColor='rgba(200,245,90,.5)';ctx2.shadowBlur=12;
-    conns.forEach(([a,b])=>{
+    const CONNS=[['ls','rs'],['ls','lh'],['rs','rh'],['lh','rh'],['ls','le'],['le','lw'],['rs','re'],['re','rw'],['lh','lk'],['lk','la'],['rh','rk'],['rk','ra'],['nose','ls'],['nose','rs']];
+    ctx2.shadowColor='rgba(200,245,90,.6)';ctx2.shadowBlur=10;
+    ctx2.strokeStyle='rgba(200,245,90,.9)';ctx2.lineWidth=3;ctx2.lineCap='round';
+    CONNS.forEach(([a,b])=>{
       if(!pts[a]||!pts[b])return;
-      ctx2.strokeStyle='rgba(200,245,90,.85)';
       ctx2.beginPath();ctx2.moveTo(pts[a].x,pts[a].y);ctx2.lineTo(pts[b].x,pts[b].y);ctx2.stroke();
     });
     ctx2.shadowBlur=0;
@@ -949,25 +951,29 @@ function initDemoCanvas(){
       ctx2.fillStyle='#c8f55a';ctx2.fill();
     });
 
-    // Angle genou
-    const kneeAngle=Math.round(170-ph*85);
-    const angEl=document.getElementById('demo-angle');
-    if(angEl) angEl.textContent=kneeAngle+'°';
-    // Compte reps
-    if(ph>.85&&demoRepPhase==='up'){demoRepPhase='down';}
-    if(ph<.15&&demoRepPhase==='down'){demoRepPhase='up';demoReps++;const el=document.getElementById('demo-reps');if(el)el.textContent=demoReps;}
+    // Angle genou avec arc visuel
+    const kAngle=Math.round(170-ph*85);
+    const el=document.getElementById('demo-angle');
+    if(el) el.textContent=kAngle+'°';
+    ctx2.strokeStyle='rgba(200,245,90,.5)';ctx2.lineWidth=2;
+    ctx2.shadowColor='rgba(200,245,90,.3)';ctx2.shadowBlur=4;
+    ctx2.beginPath();ctx2.arc(pts.lk.x,pts.lk.y,30,Math.PI*.2,Math.PI*1.1);ctx2.stroke();
+    ctx2.shadowBlur=0;
+    ctx2.fillStyle='rgba(200,245,90,.85)';ctx2.font='bold 11px monospace';
+    ctx2.fillText(kAngle+'°',pts.lk.x-36,pts.lk.y+9);
 
-    // Arc de cercle sur le genou pour visualiser l'angle
-    ctx2.strokeStyle='rgba(200,245,90,.4)';ctx2.lineWidth=2;
-    ctx2.beginPath();
-    ctx2.arc(pts.lk.x,pts.lk.y,28,Math.PI*.3,Math.PI*1.1);
-    ctx2.stroke();
-    ctx2.fillStyle='rgba(200,245,90,.7)';ctx2.font='bold 12px monospace';
-    ctx2.fillText(kneeAngle+'°',pts.lk.x-36,pts.lk.y+8);
+    // Reps
+    if(ph>0.88&&demoRepPhase==='up') demoRepPhase='down';
+    if(ph<0.12&&demoRepPhase==='down'){
+      demoRepPhase='up';demoReps++;
+      const rEl=document.getElementById('demo-reps');
+      if(rEl) rEl.textContent=demoReps;
+    }
 
-    demoCvId=requestAnimationFrame(demoLoop);
+    demoCvId=requestAnimationFrame(loop);
   })();
 }
+
 
 // Après démo, affiche le paywall
 function goPaywall(){
