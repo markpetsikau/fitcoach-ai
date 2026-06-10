@@ -306,6 +306,17 @@ button,input,select,textarea{font-family:var(--f)}
 </style>
 </head>
 <body>
+<!-- TEST NAV - enlever en prod -->
+<div style="position:fixed;bottom:0;left:0;right:0;z-index:999;background:#000;border-top:1px solid #333;display:flex;gap:4px;padding:6px 10px;flex-wrap:wrap">
+  <span style="font-size:11px;color:#555;padding:4px;align-self:center">TEST:</span>
+  <button onclick="goPage('auth')" style="background:#1a1a1a;color:#888;border:1px solid #333;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">Auth</button>
+  <button onclick="goPage('ob')" style="background:#1a1a1a;color:#888;border:1px solid #333;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">Onboarding</button>
+  <button onclick="quickStart()" style="background:#c8f55a;color:#000;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">→ App</button>
+  <button onclick="quickStart();goTab('plan')" style="background:#1a1a1a;color:#888;border:1px solid #333;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">Planning</button>
+  <button onclick="quickStart();goTab('ses')" style="background:#1a1a1a;color:#888;border:1px solid #333;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">Séance</button>
+  <button onclick="quickStart();goTab('prog')" style="background:#1a1a1a;color:#888;border:1px solid #333;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">Progression</button>
+  <button onclick="quickStart();goTab('nutr')" style="background:#1a1a1a;color:#888;border:1px solid #333;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px">Nutrition</button>
+</div>
 
 <!-- ══════ END SESSION MODAL ══════ -->
 <div class="modal-bg" id="end-modal">
@@ -1662,6 +1673,18 @@ async function callNutr(msg) {
 }
 
 function now() { const d=new Date(); return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
+
+function quickStart() {
+  U.prenom='Marc';U.poids=80;U.taille=175;U.age=28;U.imc='26.1';
+  U.niveau='intermediaire';U.freq='3';U.obj='perte';
+  U.bmr=1760;U.tdee=2728;U.deficit=2182;
+  dailyBudget=U.deficit;
+  document.getElementById('nav-av').textContent='M';
+  document.getElementById('budget-goal').textContent=dailyBudget;
+  document.getElementById('em-weight').value=U.poids;
+  buildProgram();seedDemoData();
+  goPage('app');goTab('plan');
+}
 
 // Init
 setTimeout(() => { const t=document.getElementById('nutr-typing'); if(t)t.classList.remove('show'); }, 100);
