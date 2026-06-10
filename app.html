@@ -1321,37 +1321,223 @@ function checkRep() {
 const MSG_SET = ['C\'est fait, bien joue. {rest}s de repos.', 'Nickel ! Repose-toi {rest}s.', 'Serie {done} check. {rest}s et t\'es reparti.', 'Bien ! Souffle {rest} secondes, on repart.'];
 const MSG_EXO = ['Termine ! On passe a la suite.', 'C\'est dans la boite. Prochain exercice.', 'Ouais, t\'as assure ! On enchaine.', 'Bien joue ! Voila le prochain.'];
 
+// Écran de transition entre séries/exercices
+function showTransitionScreen({title, subtitle, restSec, nextName, onDone, type='rest'}) {
+  stopTimer();
+  if (demoId) { cancelAnimationFrame(demoId); demoId = null; }
+  clearInterval(anlsInt); anlsInt = null;
+
+  const overlay = document.getElementById('pose-overlay');
+  overlay.className = 'pose-overlay show';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.flexDirection = 'column';
+  overlay.style.gap = '20px';
+  overlay.style.padding = '32px';
+
+  const color = type === 'rest' ? 'var(--blue)' : 'var(--ac)';
+  const CIRC = 2 * Math.PI * 40;
+  let cnt = restSec;
+
+  overlay.innerHTML = `
+    <div style="text-align:center;max-width:380px;width:100%">
+      <div style="font-size:32px;margin-bottom:12px">${type==='rest' ? '😮‍💨' : '💪'}</div>
+      <div style="font-family:var(--fd);font-size:24px;font-weight:800;margin-bottom:6px">${title}</div>
+      <div style="font-size:14px;color:var(--t2);margin-bottom:24px">${subtitle}</div>
+      <div style="position:relative;width:100px;height:100px;margin:0 auto 20px">
+        <svg width="100" height="100" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/>
+          <circle id="trans-ring" cx="50" cy="50" r="40" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"
+            stroke-dasharray="${CIRC}" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div id="trans-cnt" style="font-size:32px;font-weight:700;font-family:var(--fm);color:var(--tx)">${cnt}</div>
+          <div style="font-size:11px;color:var(--t2)">sec</div>
+        </div>
+      </div>
+      ${nextName ? `<div style="background:var(--s2);border:1px solid var(--b2);border-radius:12px;padding:12px 20px;margin-bottom:16px;font-size:13px;color:var(--t2)">Prochain : <strong style="color:var(--tx)">${nextName}</strong></div>` : ''}
+      <button onclick="skipTransition()" style="background:var(--ac);color:#000;font-weight:700;font-size:14px;padding:12px 32px;border-radius:100px;border:none;cursor:pointer;width:100%">Je suis prêt →</button>
+    </div>`;
+
+  // Démarre le ring
+  setTimeout(() => {
+    const ring = document.getElementById('trans-ring');
+    if (ring) ring.style.strokeDashoffset = String(CIRC);
+  }, 50);
+
+  window._transCallback = onDone;
+  if (window._transTimer) clearInterval(window._transTimer);
+  window._transTimer = setInterval(() => {
+    cnt--;
+    const el = document.getElementById('trans-cnt');
+    if (el) el.textContent = cnt;
+    if (cnt <= 0) {
+      clearInterval(window._transTimer);
+      overlay.className = 'pose-overlay';
+      overlay.style.display = '';
+      if (window._transCallback) { window._transCallback(); window._transCallback = null; }
+    }
+  }, 1000);
+}
+
+function skipTransition() {
+  if (window._transTimer) { clearInterval(window._transTimer); window._transTimer = null; }
+  document.getElementById('pose-overlay').className = 'pose-overlay';
+  document.getElementById('pose-overlay').style.display = '';
+  if (window._transCallback) { window._transCallback(); window._transCallback = null; }
+}
+
 function completeSet() {
   clearInterval(anlsInt); anlsInt = null;
   if (demoId) { cancelAnimationFrame(demoId); demoId = null; }
+  updateProgress();
+
   if (curSet < curExos[curExo].s) {
     const done = curSet; curSet++; reps = 0; updateNavInfo();
-    const msg = MSG_SET[Math.floor(Math.random()*MSG_SET.length)].replace('{rest}', curExos[curExo].rest).replace('{done}', done);
+    const rest = curExos[curExo].rest;
+    const nextSet = curSet;
+    const totalSets = curExos[curExo].s;
+    const msg = `Série ${done} check ! Souffle ${rest} secondes, on reprend la série ${nextSet} sur ${totalSets}.`;
+    speak(msg);
     coachMsg(msg);
-    startRestTimer(curExos[curExo].rest, () => showPoseScreen(curExos[curExo], beginExo));
+    showTransitionScreen({
+      title: `Série ${done}/${totalSets} terminée !`,
+      subtitle: `Repose-toi ${rest} secondes`,
+      restSec: rest,
+      nextName: `${curExos[curExo].n} — série ${nextSet}/${totalSets}`,
+      type: 'rest',
+      onDone: () => { repBuffer=[]; repPhase='up'; beginExo(); }
+    });
   } else {
-    nextExo();
+    // Toutes les séries de cet exo terminées
+    const doneExo = curExos[curExo];
+    curExo++; curSet = 1; reps = 0; repBuffer = []; repPhase = 'up';
+    if (curExo >= curExos.length) {
+      speak('Séance terminée ! Tu as tout déchiré aujourd\'hui. Regarde ton bilan !');
+      coachMsg('Séance terminée ! Tu as tout déchiré. Regarde ton bilan 💪');
+      setTimeout(openEnd, 2000);
+      return;
+    }
+    buildExoList(); updateProgress(); updateNavInfo();
+    const nextExoName = curExos[curExo].n;
+    const msg = `Exercice terminé, bien joué ! On passe aux ${nextExoName}.`;
+    speak(msg);
+    coachMsg(msg);
+    showTransitionScreen({
+      title: `${doneExo.n} terminé !`,
+      subtitle: 'Bien joué, prépare-toi pour la suite',
+      restSec: 15,
+      nextName: nextExoName,
+      type: 'next',
+      onDone: () => showPoseScreen(curExos[curExo], beginExo)
+    });
   }
-  updateProgress();
 }
 
-function nextExo() {
-  stopTimer();
-  curExo++; curSet = 1; reps = 0; repBuffer = []; repPhase = 'up';
-  if (curExo >= curExos.length) {
-    coachMsg('C\'est fini ! Tu as tout dechire aujourd\'hui. Regarde ton bilan !');
-    setTimeout(openEnd, 2000);
+function nextExo() { completeSet(); }
+
+// Douleur et switch d'exercice
+const PAIN_KEYWORDS = ['mal','douleur','bobo','blesse','coude','genou','dos','epaule','poignet','hanche','cheville','cote','cotes','ribs','tendon','muscle','crampe','tire','claque','brule','brûle','fatigue','epuise'];
+const SWITCH_KEYWORDS = ['change','switche','autre exercice','different','remplace','skip','passe','saute'];
+
+// Alternatives par groupe musculaire
+const ALTERNATIVES = {
+  'cote': [{n:'Gainage planche',s:3,r:null,rest:45,m:'Core entier'},{n:'Superman',s:3,r:15,rest:45,m:'Lombaires'}],
+  'ribs': [{n:'Gainage planche',s:3,r:null,rest:45,m:'Core entier'},{n:'Superman',s:3,r:15,rest:45,m:'Lombaires'}],
+  'dos': [{n:'Superman',s:3,r:15,rest:45,m:'Lombaires'},{n:'Cat-cow',s:2,r:15,rest:30,m:'Colonne vertebrale'}],
+  'genou': [{n:'Pont fessier',s:4,r:15,rest:45,m:'Fessiers, ischio'},{n:'Donkey kicks',s:3,r:15,rest:45,m:'Grand fessier'}],
+  'epaule': [{n:'Gainage planche',s:3,r:null,rest:45,m:'Core entier'},{n:'Crunch classique',s:3,r:20,rest:45,m:'Abdos'}],
+  'poignet': [{n:'Squat classique',s:4,r:12,rest:60,m:'Quadriceps, fessiers'},{n:'Pont fessier',s:4,r:15,rest:45,m:'Fessiers'}],
+  'default': [{n:'Jumping jacks',s:3,r:null,rest:30,m:'Corps entier'},{n:'Gainage planche',s:3,r:null,rest:45,m:'Core entier'}],
+};
+
+function detectPain(msg) {
+  const low = msg.toLowerCase();
+  return PAIN_KEYWORDS.some(k => low.includes(k));
+}
+function detectSwitch(msg) {
+  const low = msg.toLowerCase();
+  return SWITCH_KEYWORDS.some(k => low.includes(k));
+}
+function getPainZone(msg) {
+  const low = msg.toLowerCase();
+  for (const zone of Object.keys(ALTERNATIVES)) {
+    if (low.includes(zone)) return zone;
+  }
+  return 'default';
+}
+function getAlternatives(zone) {
+  return ALTERNATIVES[zone] || ALTERNATIVES['default'];
+}
+
+function showSwitchConfirm(newExo, reason) {
+  const c = document.getElementById('chat-msgs'), t = document.getElementById('typing');
+  const m = document.createElement('div'); m.className = 'msg ai';
+  m.innerHTML = `<div class="msg-bubble" style="background:rgba(200,245,90,.08);border-color:rgba(200,245,90,.2)">
+    ${reason}<br><br>
+    <strong>Je te propose : ${newExo.n}</strong><br>
+    <span style="font-size:12px;color:var(--t2)">${newExo.m} · ${newExo.s} séries</span><br><br>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="confirmSwitch()" style="flex:1;background:var(--ac);color:#000;font-weight:700;font-size:13px;padding:9px;border-radius:8px;border:none;cursor:pointer">✓ Valider</button>
+      <button onclick="cancelSwitch()" style="flex:1;background:var(--s2);color:var(--t2);font-size:13px;padding:9px;border-radius:8px;border:1px solid var(--bd);cursor:pointer">Continuer quand même</button>
+    </div>
+  </div><div class="msg-time">${now()}</div>`;
+  c.insertBefore(m, t); c.scrollTop = c.scrollHeight;
+  speak(reason + '. Je te propose ' + newExo.n + '. Tu valides ?');
+  window._pendingSwitch = newExo;
+}
+
+function confirmSwitch() {
+  if (!window._pendingSwitch) return;
+  const newExo = window._pendingSwitch; window._pendingSwitch = null;
+  // Remplace l'exercice courant
+  curExos[curExo] = {...newExo, id: curExos[curExo].id};
+  curSet = 1; reps = 0; repBuffer = []; repPhase = 'up';
+  buildExoList(); updateNavInfo();
+  const msg = 'Switche ! On part sur ' + newExo.n + '. Prends ta position.';
+  coachMsg(msg); speak(msg);
+  setTimeout(() => showPoseScreen(curExos[curExo], beginExo), 800);
+}
+function cancelSwitch() {
+  window._pendingSwitch = null;
+  coachMsg('Ok, on continue. Vas-y doucement !');
+}
+
+async function callCoach(msg) {
+  // Détection douleur en priorité
+  if (detectPain(msg)) {
+    const zone = getPainZone(msg);
+    const alts = getAlternatives(zone);
+    const alt = alts[0];
+    const reason = zone !== 'default'
+      ? `Aïe, tu as mal à la zone ${zone} — pas grave, on adapte.`
+      : 'Tu as une douleur ? On s\'arrête pas, on adapte.';
+    showSwitchConfirm(alt, reason);
     return;
   }
-  buildExoList(); updateProgress(); updateNavInfo();
-  const msg = MSG_EXO[Math.floor(Math.random()*MSG_EXO.length)] + ' Next : ' + curExos[curExo].n;
-  coachMsg(msg);
-  setTimeout(() => showPoseScreen(curExos[curExo], beginExo), 1500);
+  // Détection switch d'exercice
+  if (detectSwitch(msg)) {
+    const alts = getAlternatives('default');
+    const alt = alts[Math.floor(Math.random() * alts.length)];
+    showSwitchConfirm(alt, 'Tu veux changer ? Pas de souci, voilà ce que je te propose.');
+    return;
+  }
+  // Appel IA normal
+  const sys = `Tu es Alex, coach sportif et ami. Parle naturellement, comme un humain. Pas robotique. Contexte: ${U.poids}kg, objectif ${U.obj||'perte'}. Exercice: ${curExos[curExo]?.n||''}, serie ${curSet}, ${reps} reps faites. Max 2 phrases courtes, francais naturel, pas de markdown.`;
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[...chatHistory.slice(-6),{role:'user',content:msg}]})});
+    const d = await r.json();
+    coachMsg(d.content?.find(b=>b.type==='text')?.text || 'Continue, t\'assures !');
+  } catch(e) { coachMsg('Continue, t\'assures !'); }
 }
 
+// ══════════════════════════════════
+// HELPERS SESSION
+// ══════════════════════════════════
 function triggerError() {
   errState = true; totalErrs++;
-  const CORRS = ['Garde le dos bien droit !', 'Genoux dans l\'axe des pieds !', 'Descends plus bas !', 'Rentre le ventre !', 'Expire sur l\'effort.'];
+  const CORRS = ['Garde le dos bien droit !','Genoux dans l\'axe des pieds !','Descends plus bas !','Rentre le ventre !','Expire sur l\'effort.'];
   const msg = CORRS[Math.floor(Math.random()*CORRS.length)];
   document.getElementById('err-overlay').classList.add('show');
   document.getElementById('corr-text').textContent = msg;
@@ -1360,147 +1546,95 @@ function triggerError() {
   coachMsg('Attention — ' + msg);
   setTimeout(() => document.getElementById('err-overlay').classList.remove('show'), 1400);
 }
-function clearError() { errState = false; document.getElementById('corr-bubble').classList.remove('show'); document.getElementById('cam-badge').classList.remove('warn'); phaseSwitchCount = 0; }
+function clearError() { errState=false; document.getElementById('corr-bubble').classList.remove('show'); document.getElementById('cam-badge').classList.remove('warn'); phaseSwitchCount=0; }
 
 function startAnls() {
-  anlsCount = 0; phaseSwitchCount = 0;
+  anlsCount=0; phaseSwitchCount=0;
   anlsInt = setInterval(() => {
     anlsCount++;
-    if (demoOn) { if (anlsCount%9===0 && !errState) triggerError(); else if (errState && anlsCount%6===0) clearError(); }
+    if (demoOn) { if (anlsCount%9===0&&!errState) triggerError(); else if (errState&&anlsCount%6===0) clearError(); }
   }, 1500);
 }
-
-function startTimer(sec, rest=false) {
-  stopTimer(); timerSec = sec; timerMax = sec;
-  document.getElementById('timer-circle').style.stroke = rest ? 'var(--blue)' : 'var(--ac)';
+function startTimer(sec) {
+  stopTimer(); timerSec=sec; timerMax=sec;
+  document.getElementById('timer-circle').style.stroke='var(--ac)';
   timerInt = setInterval(() => {
-    timerSec--; document.getElementById('timer-num').textContent = timerSec;
-    document.getElementById('timer-circle').style.strokeDashoffset = 207.3 * (1 - timerSec/timerMax);
-    if (timerSec <= 0) { stopTimer(); if (!curExos[curExo]?.r) completeSet(); }
+    timerSec--; document.getElementById('timer-num').textContent=timerSec;
+    document.getElementById('timer-circle').style.strokeDashoffset=207.3*(1-timerSec/timerMax);
+    if (timerSec<=0) { stopTimer(); if (!curExos[curExo]?.r) completeSet(); }
   }, 1000);
 }
-function startRestTimer(sec, cb) {
-  stopTimer(); timerSec = sec; timerMax = sec;
-  document.getElementById('timer-circle').style.stroke = 'var(--blue)';
-  document.getElementById('timer-num').textContent = sec;
-  document.getElementById('timer-circle').style.strokeDashoffset = 0;
-  timerInt = setInterval(() => {
-    timerSec--; document.getElementById('timer-num').textContent = timerSec;
-    document.getElementById('timer-circle').style.strokeDashoffset = 207.3 * (1 - timerSec/timerMax);
-    if (timerSec <= 0) { stopTimer(); if (cb) cb(); }
-  }, 1000);
-}
-function stopTimer() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
-
+function stopTimer() { if (timerInt) { clearInterval(timerInt); timerInt=null; } }
 function buildExoList() {
-  document.getElementById('exo-list').innerHTML = curExos.map((e, i) => {
-    const state = i < curExo ? 'done' : i === curExo ? 'current' : 'todo';
-    return `<div class="exo-item ${i===curExo?'current':i<curExo?'done':''}"><div class="exo-dot ${state}"></div><span class="exo-name">${e.n}</span><span class="exo-sets">${e.r ? e.s+'×'+e.r : e.s+'×30s'}</span></div>`;
+  document.getElementById('exo-list').innerHTML = curExos.map((e,i) => {
+    const s = i<curExo?'done':i===curExo?'current':'todo';
+    return `<div class="exo-item ${i===curExo?'current':i<curExo?'done':''}"><div class="exo-dot ${s}"></div><span class="exo-name">${e.n}</span><span class="exo-sets">${e.r?e.s+'×'+e.r:e.s+'×30s'}</span></div>`;
   }).join('');
 }
-function updateProgress() {
-  const p = Math.round(curExo / curExos.length * 100);
-  document.getElementById('prog-fill').style.width = p + '%';
-  document.getElementById('prog-pct').textContent = p + '%';
-}
-function updateNavInfo() {
-  if (curExo < curExos.length) document.getElementById('nav-exo-info').textContent = curExos[curExo].n;
-}
+function updateProgress() { const p=Math.round(curExo/curExos.length*100); document.getElementById('prog-fill').style.width=p+'%'; document.getElementById('prog-pct').textContent=p+'%'; }
+function updateNavInfo() { if (curExo<curExos.length) document.getElementById('nav-exo-info').textContent=curExos[curExo].n; }
 
 // ══════════════════════════════════
-// CHAT + VOIX
+// VOIX & MIC
 // ══════════════════════════════════
 function initVoice() {
   if (!synth) return;
   const pick = () => {
-    const v = synth.getVoices();
-    frVoice = v.find(x => x.name.includes('Google') && x.lang.startsWith('fr'))
-           || v.find(x => x.lang === 'fr-FR')
-           || v.find(x => x.lang.startsWith('fr'))
-           || null;
+    const v=synth.getVoices();
+    frVoice=v.find(x=>x.name.includes('Google')&&x.lang.startsWith('fr'))||v.find(x=>x.lang==='fr-FR')||v.find(x=>x.lang.startsWith('fr'))||null;
   };
-  pick();
-  if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = pick;
+  pick(); if (synth.onvoiceschanged!==undefined) synth.onvoiceschanged=pick;
 }
-
 function speak(text) {
-  if (!voiceOn || !synth) return;
-  const clean = text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/[^\x00-\x7FÀ-ÿ\s]/g,'').replace(/\s+/g,' ').trim();
-  if (!clean || clean.length < 3) return;
-  speakQueue.push(clean);
-  if (!isSpeaking) processQueue();
+  if (!voiceOn||!synth) return;
+  const clean=text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/[^\x00-\x7FÀ-ÿ\s]/g,'').replace(/\s+/g,' ').trim();
+  if (!clean||clean.length<3) return;
+  speakQueue.push(clean); if (!isSpeaking) processQueue();
 }
 function processQueue() {
-  if (!speakQueue.length || !synth) { isSpeaking = false; return; }
-  isSpeaking = true;
-  const text = speakQueue.shift();
-  synth.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'fr-FR'; u.rate = 0.9; u.pitch = 1.05; u.volume = 1.0;
-  if (frVoice) u.voice = frVoice;
-  u.onend = () => { isSpeaking = false; setTimeout(processQueue, 80); };
-  u.onerror = () => { isSpeaking = false; setTimeout(processQueue, 80); };
+  if (!speakQueue.length||!synth) { isSpeaking=false; return; }
+  isSpeaking=true; const text=speakQueue.shift(); synth.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='fr-FR'; u.rate=0.9; u.pitch=1.05; u.volume=1.0;
+  if (frVoice) u.voice=frVoice;
+  u.onend=()=>{ isSpeaking=false; setTimeout(processQueue,80); };
+  u.onerror=()=>{ isSpeaking=false; setTimeout(processQueue,80); };
   synth.speak(u);
 }
-function toggleVoice() {
-  voiceOn = !voiceOn;
-  if (!voiceOn) { synth?.cancel(); speakQueue = []; }
-  document.getElementById('btn-voice').textContent = voiceOn ? '🔊' : '🔇';
-}
-
+function toggleVoice() { voiceOn=!voiceOn; if(!voiceOn){synth?.cancel();speakQueue=[];} document.getElementById('btn-voice').textContent=voiceOn?'🔊':'🔇'; }
 function initMic() {
   if (recognition) return;
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return;
-  recognition = new SR();
-  recognition.lang = 'fr-FR'; recognition.continuous = false; recognition.interimResults = true;
-  recognition.onstart = () => { document.getElementById('btn-mic').style.background = 'var(--warn)'; document.getElementById('btn-mic').textContent = '🔴'; document.getElementById('chat-input').placeholder = 'Je t\'ecoute...'; };
-  recognition.onresult = e => {
-    let final = '', interim = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) { if (e.results[i].isFinal) final += e.results[i][0].transcript; else interim += e.results[i][0].transcript; }
-    document.getElementById('chat-input').value = final || interim;
-    if (final) { stopMic(); sendChat(); }
-  };
-  recognition.onerror = () => stopMic();
-  recognition.onend = () => { micOn = false; updateMicUI(); };
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if (!SR) return;
+  recognition=new SR(); recognition.lang='fr-FR'; recognition.continuous=false; recognition.interimResults=true;
+  recognition.onstart=()=>{ document.getElementById('btn-mic').style.background='var(--warn)'; document.getElementById('btn-mic').textContent='🔴'; document.getElementById('chat-input').placeholder='Je t\'ecoute...'; };
+  recognition.onresult=e=>{ let f='',im=''; for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript;else im+=e.results[i][0].transcript;} document.getElementById('chat-input').value=f||im; if(f){stopMic();sendChat();} };
+  recognition.onerror=()=>stopMic(); recognition.onend=()=>{ micOn=false; updateMicUI(); };
 }
-function toggleMic() {
-  initMic();
-  if (!recognition) { coachMsg('Micro non disponible. Utilise Chrome.'); return; }
-  micOn ? stopMic() : startMic();
-}
-function startMic() { synth?.cancel(); speakQueue = []; micOn = true; try { recognition.start(); } catch(e) { stopMic(); } }
-function stopMic() { micOn = false; try { recognition?.stop(); } catch(e) {} updateMicUI(); document.getElementById('chat-input').placeholder = 'Parle ou ecris au coach...'; }
-function updateMicUI() { const b = document.getElementById('btn-mic'); if (!b) return; b.textContent = micOn ? '🔴' : '🎤'; b.style.background = micOn ? 'var(--warn)' : 'var(--s2)'; }
+function toggleMic() { initMic(); if(!recognition){coachMsg('Micro non dispo. Utilise Chrome.');return;} micOn?stopMic():startMic(); }
+function startMic() { synth?.cancel();speakQueue=[];micOn=true;try{recognition.start();}catch(e){stopMic();} }
+function stopMic() { micOn=false;try{recognition?.stop();}catch(e){}updateMicUI();document.getElementById('chat-input').placeholder='Parle ou ecris au coach...'; }
+function updateMicUI() { const b=document.getElementById('btn-mic');if(!b)return;b.textContent=micOn?'🔴':'🎤';b.style.background=micOn?'var(--warn)':'var(--s2)'; }
 
 function coachMsg(txt) {
-  const c = document.getElementById('chat-msgs'), t = document.getElementById('typing');
-  t.classList.add('show'); c.appendChild(t); c.scrollTop = c.scrollHeight;
-  setTimeout(() => {
+  const c=document.getElementById('chat-msgs'),t=document.getElementById('typing');
+  t.classList.add('show');c.appendChild(t);c.scrollTop=c.scrollHeight;
+  setTimeout(()=>{
     t.classList.remove('show');
-    const m = document.createElement('div'); m.className = 'msg ai';
-    m.innerHTML = '<div class="msg-bubble">' + txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>') + '</div><div class="msg-time">' + now() + '</div>';
-    c.insertBefore(m, t); c.scrollTop = c.scrollHeight;
+    const m=document.createElement('div');m.className='msg ai';
+    m.innerHTML='<div class="msg-bubble">'+txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+'</div><div class="msg-time">'+now()+'</div>';
+    c.insertBefore(m,t);c.scrollTop=c.scrollHeight;
     chatHistory.push({role:'assistant',content:txt});
     speak(txt);
-  }, 600 + Math.random()*300);
+  }, 600+Math.random()*300);
 }
 function sendChat() {
-  const inp = document.getElementById('chat-input'), txt = inp.value.trim(); if (!txt) return; inp.value = '';
-  const c = document.getElementById('chat-msgs'), t = document.getElementById('typing');
-  const m = document.createElement('div'); m.className = 'msg me';
-  m.innerHTML = '<div class="msg-bubble">' + txt + '</div><div class="msg-time">' + now() + '</div>';
-  c.insertBefore(m, t); c.scrollTop = c.scrollHeight;
+  const inp=document.getElementById('chat-input'),txt=inp.value.trim();if(!txt)return;inp.value='';
+  const c=document.getElementById('chat-msgs'),t=document.getElementById('typing');
+  const m=document.createElement('div');m.className='msg me';
+  m.innerHTML='<div class="msg-bubble">'+txt+'</div><div class="msg-time">'+now()+'</div>';
+  c.insertBefore(m,t);c.scrollTop=c.scrollHeight;
   chatHistory.push({role:'user',content:txt});
   callCoach(txt);
-}
-async function callCoach(msg) {
-  const sys = `Tu es Alex, coach sportif. Tu parles comme un vrai ami — naturel, direct, humain. Pas robotique. Contexte: ${U.poids}kg, ${U.taille}cm, ${U.age} ans, objectif ${U.obj}. Exercice: ${curExos[curExo]?.n||''}, serie ${curSet}, ${reps} reps. Max 2 phrases, pas de markdown, francais naturel.`;
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[...chatHistory.slice(-6),{role:'user',content:msg}]})});
-    const d = await r.json();
-    coachMsg(d.content?.find(b => b.type==='text')?.text || 'Continue, t\'assures !');
-  } catch(e) { coachMsg('Continue, t\'assures !'); }
 }
 
 // ══════════════════════════════════
