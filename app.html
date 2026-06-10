@@ -343,65 +343,6 @@ button,input,select{font-family:var(--f)}
 </div>
 </div>
 
-<!-- DÉMO -->
-<div class="pg" id="pg-demo">
-  <nav style="height:56px;background:var(--sur);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 24px;flex-shrink:0;z-index:10">
-    <div style="font-family:var(--fd);font-size:16px;font-weight:700;margin-right:auto">⚡ Fit<em style="color:var(--ac);font-style:normal">Coach</em> AI</div>
-    <button class="btn bgh" style="font-size:13px;padding:8px 18px;border-radius:100px" onclick="show('auth')">Se connecter</button>
-  </nav>
-  <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:0;overflow:hidden">
-    <!-- Gauche -->
-    <div style="display:flex;flex-direction:column;justify-content:center;padding:48px;gap:22px;overflow-y:auto">
-      <div style="display:inline-flex;align-items:center;gap:8px;background:var(--a3);border:1px solid rgba(200,245,90,.3);padding:5px 14px;border-radius:100px;font-size:12px;color:var(--ac);font-family:var(--fm);width:fit-content">
-        <div style="width:6px;height:6px;border-radius:50%;background:var(--ac);animation:pulse 1.5s infinite"></div>
-        Démo interactive
-      </div>
-      <div style="font-family:var(--fd);font-size:clamp(28px,3.5vw,48px);font-weight:800;letter-spacing:-2px;line-height:1.05">
-        Vois ce que<br><em style="color:var(--ac);font-style:normal">ton coach IA</em><br>peut faire.
-      </div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--t2)"><div style="width:36px;height:36px;border-radius:10px;background:var(--a3);border:1px solid rgba(200,245,90,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📷</div>Détection de corps — 33 points analysés en temps réel</div>
-        <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--t2)"><div style="width:36px;height:36px;border-radius:10px;background:var(--a3);border:1px solid rgba(200,245,90,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔢</div>Comptage automatique de tes répétitions</div>
-        <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--t2)"><div style="width:36px;height:36px;border-radius:10px;background:var(--a3);border:1px solid rgba(200,245,90,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🎤</div>Coach vocal — il te parle, tu lui réponds</div>
-        <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:var(--t2)"><div style="width:36px;height:36px;border-radius:10px;background:var(--a3);border:1px solid rgba(200,245,90,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⚠️</div>Corrections de posture en direct</div>
-      </div>
-      <!-- Chat animé -->
-      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:14px;padding:14px;display:flex;align-items:flex-start;gap:10px">
-        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--blue));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🤖</div>
-        <div>
-          <div style="font-size:13px;color:var(--tx);line-height:1.55" id="demo-chat-msg">Salut ! Je suis Alex. Lance la démo pour voir comment je coache !</div>
-          <div style="font-size:11px;color:var(--t3);margin-top:5px;font-family:var(--fm)">maintenant</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <button class="btn bg" style="font-size:15px;padding:14px 32px;border-radius:100px" onclick="enterDemo()">▶ Essayer maintenant</button>
-        <button class="btn bgh" style="font-size:14px;padding:14px 24px;border-radius:100px" onclick="show('auth')">S'abonner →</button>
-      </div>
-      <div style="display:flex;gap:20px;flex-wrap:wrap">
-        <div style="font-size:12px;color:var(--t3)">💪 <strong style="color:var(--t2)">+3 200</strong> utilisateurs</div>
-        <div style="font-size:12px;color:var(--t3)">⭐ <strong style="color:var(--t2)">4.8/5</strong> satisfaction</div>
-        <div style="font-size:12px;color:var(--t3)">🏆 <strong style="color:var(--t2)">−12kg</strong> en moyenne</div>
-      </div>
-    </div>
-    <!-- Droite : canvas -->
-    <div style="background:#0a0e14;position:relative;overflow:hidden" id="demo-right">
-      <canvas id="demo-cv" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
-      <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;background:linear-gradient(transparent,rgba(8,10,13,.85))">
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <div style="background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border:1px solid rgba(200,245,90,.3);padding:5px 10px;border-radius:20px;font-size:11px;color:var(--ac);font-family:var(--fm);display:flex;align-items:center;gap:6px">
-            <div style="width:6px;height:6px;border-radius:50%;background:var(--ac);animation:pulse 1.5s infinite"></div>IA active
-          </div>
-          <div style="background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border:1px solid var(--b2);padding:5px 10px;border-radius:20px;font-size:11px;color:var(--tx);font-family:var(--fm)" id="demo-exo-badge">Squat — Série 1/3</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-end">
-          <div><div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Angle genoux</div><div style="font-size:22px;font-weight:700;font-family:var(--fm);color:var(--ac)" id="demo-angle">90°</div></div>
-          <div style="text-align:right"><div style="font-size:11px;color:var(--t2);margin-bottom:2px">Reps</div><div style="font-size:36px;font-weight:700;font-family:var(--fm);color:var(--ac)" id="demo-reps">0</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- AUTH -->
 <div class="pg on" id="pg-auth">
   <div class="wrap">
@@ -416,9 +357,16 @@ button,input,select{font-family:var(--f)}
         <div class="f"><label>Mot de passe</label><input type="password" id="lp" placeholder="••••••••"/></div>
         <button class="btn bg" style="width:100%;border-radius:10px;padding:12px;margin-top:4px;font-size:14px" onclick="doLogin()">Se connecter →</button>
         <div class="sw" style="margin-top:10px">Pas de compte ? <a onclick="sw(true)">S'inscrire</a></div>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd);text-align:center">
-          <p style="font-size:12px;color:var(--t2);margin-bottom:10px">Tu veux voir comment ça marche ?</p>
-          <button class="btn bgh" style="width:100%;border-radius:10px;padding:10px;font-size:13px" onclick="startDemo2()">▶ Lancer la démo</button>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--bd)">
+          <p style="font-size:12px;color:var(--t2);margin-bottom:10px;text-align:center">Voir comment ça marche</p>
+          <div style="position:relative;width:100%;padding-top:56.25%;border-radius:10px;overflow:hidden;background:#000">
+            <iframe
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1"
+              style="position:absolute;inset:0;width:100%;height:100%;border:none"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen>
+            </iframe>
+          </div>
         </div>
         <div class="sw" style="margin-top:10px"><a onclick="location.href='index.html'" style="color:var(--t2)">← Retour à l'accueil</a></div>
       </div>
@@ -838,143 +786,6 @@ function qLogin(){
 }
 
 // Démo : profil par défaut, va directement dans l'app sans paiement
-function startDemo2(){
-  show('demo');
-  setTimeout(initDemoCanvas, 150);
-}
-
-// Rentre dans l'app en mode démo après avoir vu la page démo
-function enterDemo(){
-  P.prenom='Toi';P.poids=80;P.taille=175;P.age=28;
-  P.imc='26.1';P.niveau='intermediaire';P.freq='3';P.obj='perte';
-  P.bmr=1760;P.tdee=2728;P.deficit=2182;P.isPaid=false;P.isDemo=true;
-  dailyBudget=P.deficit;
-  document.getElementById('bobj').textContent=dailyBudget;
-  buildProg2();seedDemo();show('app');
-  const demoBadge=document.querySelector('.pro');
-  if(demoBadge){demoBadge.textContent='Démo';demoBadge.style.background='rgba(74,158,255,.1)';demoBadge.style.borderColor='rgba(74,158,255,.3)';demoBadge.style.color='var(--blue)';}
-  goTab('ses');
-  document.getElementById('nav-av').textContent='D';
-  document.getElementById('btn-end').style.display='';
-  setTimeout(()=>{
-    startDemo();
-    coachMsg("Bienvenue dans la démo ! Je suis Alex, ton coach. Active ta caméra ou lance le mode démo pour voir comment ça marche !");
-  },400);
-}
-
-// Canvas animé page démo
-let demoCvAnim=0, demoCvId=null, demoReps=0, demoRepPhase='up';
-let demoMsgIdx=0, demoMsgInt=null, demoExoInt=null;
-
-function initDemoCanvas(){
-  const cv2=document.getElementById('demo-cv');
-  if(!cv2){ console.error('demo-cv not found'); return; }
-  if(demoCvId){ cancelAnimationFrame(demoCvId); demoCvId=null; }
-  if(demoMsgInt){ clearInterval(demoMsgInt); }
-  if(demoExoInt){ clearInterval(demoExoInt); }
-
-  const right=document.getElementById('demo-right');
-  const W=right?right.clientWidth:window.innerWidth/2;
-  const H=right?right.clientHeight:(window.innerHeight-56);
-  cv2.width=Math.max(W,100);
-  cv2.height=Math.max(H,200);
-  console.log('Canvas size:',cv2.width,'x',cv2.height);
-
-  const ctx2=cv2.getContext('2d');
-  const MSGS=[
-    "Allez vas-y, descends encore un peu !",
-    "Parfait, genoux dans l'axe. Continue.",
-    "T'as bien le dos droit, nickel !",
-    "Encore une rep, t'es chaud !",
-    "Super forme, on lâche rien !",
-    "Voilà, c'est exactement comme ça !",
-  ];
-  const EXOS=['Squat — Série 1/3','Pompes — Série 2/3','Fentes — Série 1/2','Gainage — Série 3/3'];
-  let exoIdx=0;
-
-  demoMsgInt=setInterval(()=>{
-    if(!document.getElementById('pg-demo').classList.contains('on')){clearInterval(demoMsgInt);return;}
-    demoMsgIdx=(demoMsgIdx+1)%MSGS.length;
-    const el=document.getElementById('demo-chat-msg');
-    if(el) el.textContent=MSGS[demoMsgIdx];
-  },2500);
-
-  demoExoInt=setInterval(()=>{
-    if(!document.getElementById('pg-demo').classList.contains('on')){clearInterval(demoExoInt);return;}
-    exoIdx=(exoIdx+1)%EXOS.length;
-    const el=document.getElementById('demo-exo-badge');
-    if(el) el.textContent=EXOS[exoIdx];
-  },4000);
-
-  (function loop(){
-    if(!document.getElementById('pg-demo').classList.contains('on')){demoCvId=null;return;}
-    demoCvAnim+=0.014;
-    const ph=(Math.sin(demoCvAnim)+1)/2;
-    const CX=cv2.width/2, W2=cv2.width, H2=cv2.height;
-
-    // Fond
-    ctx2.fillStyle='#080a0d';
-    ctx2.fillRect(0,0,W2,H2);
-
-    // Grille subtile
-    ctx2.strokeStyle='rgba(200,245,90,.035)';ctx2.lineWidth=1;
-    for(let x=0;x<W2;x+=48){ctx2.beginPath();ctx2.moveTo(x,0);ctx2.lineTo(x,H2);ctx2.stroke();}
-    for(let y=0;y<H2;y+=48){ctx2.beginPath();ctx2.moveTo(0,y);ctx2.lineTo(W2,y);ctx2.stroke();}
-
-    // Squelette animé (squat)
-    const sq=Math.sin(demoCvAnim);
-    const pts={
-      nose:{x:CX,y:H2*.10},
-      ls:{x:CX-W2*.13,y:H2*(.24+sq*.03)},
-      rs:{x:CX+W2*.13,y:H2*(.24+sq*.03)},
-      le:{x:CX-W2*.22,y:H2*(.35+sq*.02)},
-      re:{x:CX+W2*.22,y:H2*(.35+sq*.02)},
-      lw:{x:CX-W2*.24,y:H2*(.47+sq*.02)},
-      rw:{x:CX+W2*.24,y:H2*(.47+sq*.02)},
-      lh:{x:CX-W2*.09,y:H2*(.52+sq*.09)},
-      rh:{x:CX+W2*.09,y:H2*(.52+sq*.09)},
-      lk:{x:CX-W2*.10,y:H2*(.67+sq*.05)},
-      rk:{x:CX+W2*.10,y:H2*(.67+sq*.05)},
-      la:{x:CX-W2*.09,y:H2*.86},
-      ra:{x:CX+W2*.09,y:H2*.86},
-    };
-    const CONNS=[['ls','rs'],['ls','lh'],['rs','rh'],['lh','rh'],['ls','le'],['le','lw'],['rs','re'],['re','rw'],['lh','lk'],['lk','la'],['rh','rk'],['rk','ra'],['nose','ls'],['nose','rs']];
-    ctx2.shadowColor='rgba(200,245,90,.6)';ctx2.shadowBlur=10;
-    ctx2.strokeStyle='rgba(200,245,90,.9)';ctx2.lineWidth=3;ctx2.lineCap='round';
-    CONNS.forEach(([a,b])=>{
-      if(!pts[a]||!pts[b])return;
-      ctx2.beginPath();ctx2.moveTo(pts[a].x,pts[a].y);ctx2.lineTo(pts[b].x,pts[b].y);ctx2.stroke();
-    });
-    ctx2.shadowBlur=0;
-    Object.values(pts).forEach(p=>{
-      ctx2.beginPath();ctx2.arc(p.x,p.y,5,0,Math.PI*2);
-      ctx2.fillStyle='#c8f55a';ctx2.fill();
-    });
-
-    // Angle genou avec arc visuel
-    const kAngle=Math.round(170-ph*85);
-    const el=document.getElementById('demo-angle');
-    if(el) el.textContent=kAngle+'°';
-    ctx2.strokeStyle='rgba(200,245,90,.5)';ctx2.lineWidth=2;
-    ctx2.shadowColor='rgba(200,245,90,.3)';ctx2.shadowBlur=4;
-    ctx2.beginPath();ctx2.arc(pts.lk.x,pts.lk.y,30,Math.PI*.2,Math.PI*1.1);ctx2.stroke();
-    ctx2.shadowBlur=0;
-    ctx2.fillStyle='rgba(200,245,90,.85)';ctx2.font='bold 11px monospace';
-    ctx2.fillText(kAngle+'°',pts.lk.x-36,pts.lk.y+9);
-
-    // Reps
-    if(ph>0.88&&demoRepPhase==='up') demoRepPhase='down';
-    if(ph<0.12&&demoRepPhase==='down'){
-      demoRepPhase='up';demoReps++;
-      const rEl=document.getElementById('demo-reps');
-      if(rEl) rEl.textContent=demoReps;
-    }
-
-    demoCvId=requestAnimationFrame(loop);
-  })();
-}
-
-
 // Après démo, affiche le paywall
 function goPaywall(){
   // Calcule d'abord le résumé ob3
