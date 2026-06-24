@@ -6,6 +6,7 @@
 <title>FitCoach AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -115,7 +116,7 @@ button,input,select,textarea{font-family:var(--f)}
 /* session */
 .session-body{display:grid;grid-template-columns:1fr 340px;flex:1;overflow:hidden;min-height:0}
 .cam-zone{background:#111;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
-#main-canvas{position:absolute;inset:0;width:100%;height:100%;background:transparent;pointer-events:none}
+#main-canvas{position:absolute;inset:0;width:100%;height:100%;background:transparent;pointer-events:none;z-index:2}
 .no-cam{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
 .no-cam-icon{width:60px;height:60px;border-radius:50%;background:var(--s2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:26px}
 .no-cam p{font-size:13px;color:var(--t2);text-align:center;max-width:200px;line-height:1.5}
@@ -724,12 +725,40 @@ function doLogin() {
 }
 function doRegister() {
   const prenom = document.getElementById('reg-prenom').value.trim();
+  const nom = document.getElementById('reg-nom').value.trim();
   const email = document.getElementById('reg-email').value.trim();
   const pwd = document.getElementById('reg-pwd').value;
   if (!prenom || !email || !pwd) { alert('Remplis tous les champs.'); return; }
-  U.prenom = prenom;
+  if (pwd.length < 8) { alert('Mot de passe : 8 caractères minimum.'); return; }
+  U.prenom = prenom; U.nom = nom; U.email = email;
   document.getElementById('nav-av').textContent = prenom.charAt(0).toUpperCase();
+  // Envoie email de confirmation via EmailJS
+  sendWelcomeEmail(prenom, email);
   goPage('ob');
+}
+
+async function sendWelcomeEmail(prenom, email) {
+  try {
+    // EmailJS — remplace par tes vraies clés sur emailjs.com (gratuit jusqu'à 200 mails/mois)
+    const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';   // ← colle ta clé publique ici
+    const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';   // ← ton service ID (Gmail, Outlook...)
+    const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID'; // ← ton template ID
+    if (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+      console.log('[EmailJS] Clés non configurées — email non envoyé. Va sur emailjs.com pour configurer.');
+      return;
+    }
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_name: prenom,
+      to_email: email,
+      from_name: 'FitCoach AI',
+      message: 'Bienvenue ' + prenom + ' ! Ton compte FitCoach AI est créé. Ton programme personnalisé t\'attend. Let\'s go ! 💪',
+      reply_to: 'noreply@fitcoach.ai',
+    });
+    console.log('[EmailJS] Email de bienvenue envoyé à', email);
+  } catch(err) {
+    console.warn('[EmailJS] Erreur envoi email:', err);
+  }
 }
 
 // ══════════════════════════════════
@@ -786,7 +815,13 @@ function startApp() {
   buildProgram(); seedDemoData();
   goPage('app');
   goTab('plan');
-  setTimeout(() => nutrCoachMsg('Salut ! Je suis ton coach nutrition. Prends ton plat en photo, je t\'analyse ca en quelques secondes.'), 800);
+  setTimeout(() => {
+    nutrCoachMsg('Salut ! Je suis ton coach nutrition. Prends ton plat en photo, je t\'analyse en quelques secondes.');
+    // Message coach séance avec profil
+    const imc = parseFloat(U.imc)||25;
+    const imcMsg = imc > 30 ? 'Programme adapté, on y va progressivement.' : imc > 25 ? 'Bon profil pour brûler des graisses !' : 'Profil parfait pour performer !';
+    setTimeout(()=>coachMsg('Bienvenue ' + U.prenom + ' ! ' + imcMsg + ' Ton programme ' + U.poids + 'kg/' + U.taille + 'cm est prêt. C\'est parti !'), 1200);
+  }, 800);
 }
 
 // ══════════════════════════════════
@@ -873,11 +908,26 @@ function buildProgram() {
     const wses = days.map((day, i) => {
       const tpl = tpls[sc % tpls.length]; sc++;
       const lvl = U.niveau || 'intermediaire';
-      const exos = tpl.ids.map(id => EXO.find(e => e.id === id)).filter(Boolean).map(e => ({
-        ...e,
-        s: Math.max(2, Math.round((lvl==='debutant'?e.s-1:lvl==='avance'?e.s+1:e.s)*(w<=2?.8:w<=5?.9:1))),
-        r: e.r ? Math.max(4, Math.round((lvl==='debutant'?e.r-3:lvl==='avance'?e.r+3:e.r)*(w<=2?.8:w<=5?.9:1))) : null,
-      }));
+      // Adaptation selon profil physique complet
+      const imc = parseFloat(U.imc) || 25;
+      const age = U.age || 28;
+      // Facteur de charge : plus lourd ou plus âgé = plus de repos, moins de reps
+      const weightFactor = U.poids > 90 ? 0.85 : U.poids > 75 ? 1.0 : 1.1;
+      const ageFactor = age > 45 ? 0.85 : age > 35 ? 0.92 : 1.0;
+      const imcFactor = imc > 30 ? 0.8 : imc > 25 ? 0.9 : 1.0;
+      const progFactor = w<=2 ? 0.75 : w<=5 ? 0.88 : w<=8 ? 1.0 : 1.1;
+      const lvlMult = lvl==='debutant' ? 0.8 : lvl==='avance' ? 1.2 : 1.0;
+      const exos = tpl.ids.map(id => EXO.find(e => e.id === id)).filter(Boolean).map(e => {
+        const baseSets = Math.round(e.s * lvlMult * progFactor);
+        const baseReps = e.r ? Math.round(e.r * lvlMult * weightFactor * ageFactor * progFactor) : null;
+        const baseRest = Math.round(e.rest * (imc>28?1.2:1) * (age>40?1.1:1));
+        return {
+          ...e,
+          s: Math.max(2, Math.min(6, baseSets)),
+          r: baseReps ? Math.max(4, Math.min(30, baseReps)) : null,
+          rest: Math.min(120, Math.max(30, baseRest)),
+        };
+      });
       return {id:`w${w}s${i}`,week:w,day,name:tpl.n,emoji:tpl.e,dur:Math.round(tpl.dur*im),kcal:Math.round(tpl.kcal*im),focus:tpl.f,desc:tpl.d,exos,phase};
     });
     fullProgram.push({week:w, phase, sessions:wses});
@@ -984,10 +1034,12 @@ async function startCamera() {
     videoEl.srcObject = stream;
     videoEl.autoplay = true; videoEl.playsInline = true; videoEl.muted = true;
     // Vidéo visible en fond, miroir CSS
-    videoEl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)';
+    videoEl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1';
     document.getElementById('cam-zone').prepend(videoEl);
-    await new Promise(r => { videoEl.onloadedmetadata = r; setTimeout(r, 2000); });
-    await videoEl.play().catch(() => {});
+    await new Promise(r => {
+      videoEl.onloadedmetadata = () => { videoEl.play().then(r).catch(r); };
+      setTimeout(r, 3000);
+    });
     camOn = true;
     activateOverlay();
     // Tente MediaPipe
@@ -998,20 +1050,26 @@ async function startCamera() {
       pose.setOptions({modelComplexity:1, smoothLandmarks:true, enableSegmentation:false, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
       pose.onResults(res => {
         if (!cx || !cv) return;
+        // Efface juste le canvas (la vidéo reste visible en fond CSS)
         cx.clearRect(0, 0, cv.width, cv.height);
-        if (res.poseLandmarks) drawSkeleton(res.poseLandmarks, analyzePosture(res.poseLandmarks) || []);
+        if (res.poseLandmarks) {
+          drawSkeleton(res.poseLandmarks, analyzePosture(res.poseLandmarks) || []);
+        }
       });
       new Camera(videoEl, {onFrame: async () => { try { await pose.send({image:videoEl}); } catch(e) {} }, width:640, height:480}).start();
     } else {
       // Fallback : squelette animé par-dessus la vraie caméra
       document.getElementById('cam-label').textContent = 'Camera active';
       repBuffer = [];
+      // Fallback : squelette animé sur fond de la vraie caméra
       (function loop() {
         if (!camOn) return;
         if (!cx || !cv) { requestAnimationFrame(loop); return; }
         cx.clearRect(0, 0, cv.width, cv.height);
-        skelAnim += .007; const ph = (Math.sin(skelAnim)+1)/2;
-        drawDemoSkeleton(ph); updateAnglesDemo(ph);
+        skelAnim += .007;
+        const ph = (Math.sin(skelAnim)+1)/2;
+        drawDemoSkeleton(ph);
+        updateAnglesDemo(ph);
         requestAnimationFrame(loop);
       })();
     }
@@ -1024,9 +1082,15 @@ async function startCamera() {
 function startDemoMode() {
   demoOn = true; initCanvas(); resizeCanvas(); activateOverlay();
   repBuffer = [];
-  (function df() {
-    skelAnim += .009; const ph = (Math.sin(skelAnim)+1)/2;
-    drawDemoSkeleton(ph); updateAnglesDemo(ph);
+  (function demoLoop() {
+    if (!demoOn) return;
+    skelAnim += .009;
+    const ph = (Math.sin(skelAnim)+1)/2;
+    if (cx && cv) {
+      cx.clearRect(0, 0, cv.width, cv.height);
+      drawDemoSkeleton(ph);
+    }
+    updateAnglesDemo(ph);
     demoId = requestAnimationFrame(demoLoop);
   })();
 }
@@ -1301,7 +1365,14 @@ function beginExo() {
   const exo = curExos[curExo];
   const dur = exo.r ? Math.max(30, exo.r * 4) : 30;
   if (demoOn && !demoId) {
-    (function demoLoop() { skelAnim+=.009; const ph=(Math.sin(skelAnim)+1)/2; drawDemoSkeleton(ph); updateAnglesDemo(ph); demoId=requestAnimationFrame(df); })();
+    (function demoAnim() {
+      if (!demoOn) return;
+      skelAnim += .009;
+      const ph = (Math.sin(skelAnim)+1)/2;
+      if (cx && cv) { cx.clearRect(0,0,cv.width,cv.height); drawDemoSkeleton(ph); }
+      updateAnglesDemo(ph);
+      demoId = requestAnimationFrame(demoAnim);
+    })();
   }
   startAnls(); startTimer(dur);
   const msgs = ['Allez, c\'est parti ! ' + exo.n + ', serie ' + curSet + ' sur ' + exo.s + '. ' + (getPoseInfo(exo.n).tips) + '.', 'Go ! ' + exo.n + ' serie ' + curSet + '. ' + getPoseInfo(exo.n).tips, 'En place ! ' + exo.n + ', serie ' + curSet + '/' + exo.s];
@@ -1602,18 +1673,93 @@ function processQueue() {
   synth.speak(u);
 }
 function toggleVoice() { voiceOn=!voiceOn; if(!voiceOn){synth?.cancel();speakQueue=[];} document.getElementById('btn-voice').textContent=voiceOn?'🔊':'🔇'; }
+// ── MICRO EN CONTINU ──
+// Une fois activé, le micro reste ouvert : dès que tu parles il envoie, puis redémarre
+let micContinuous = false;
+
 function initMic() {
   if (recognition) return;
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if (!SR) return;
-  recognition=new SR(); recognition.lang='fr-FR'; recognition.continuous=false; recognition.interimResults=true;
-  recognition.onstart=()=>{ document.getElementById('btn-mic').style.background='var(--warn)'; document.getElementById('btn-mic').textContent='🔴'; document.getElementById('chat-input').placeholder='Je t\'ecoute...'; };
-  recognition.onresult=e=>{ let f='',im=''; for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript;else im+=e.results[i][0].transcript;} document.getElementById('chat-input').value=f||im; if(f){stopMic();sendChat();} };
-  recognition.onerror=()=>stopMic(); recognition.onend=()=>{ micOn=false; updateMicUI(); };
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  recognition = new SR();
+  recognition.lang = 'fr-FR';
+  recognition.continuous = false;      // false = on gère la relance nous-mêmes
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    micOn = true; updateMicUI();
+    document.getElementById('chat-input').placeholder = '🎤 Je t\'écoute...';
+  };
+  recognition.onresult = e => {
+    let final = '', interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById('chat-input').value = final || interim;
+    if (final) {
+      sendChat();
+      document.getElementById('chat-input').value = '';
+      // Si mode continu : redémarre après un court délai (laisse Alex parler)
+      if (micContinuous) {
+        setTimeout(() => {
+          if (micContinuous) {
+            try { recognition.start(); } catch(e) {}
+          }
+        }, 2000);
+      }
+    }
+  };
+  recognition.onerror = e => {
+    if (e.error === 'no-speech' && micContinuous) {
+      // Pas de parole détectée, redémarre
+      setTimeout(() => { if (micContinuous) try { recognition.start(); } catch(e) {} }, 500);
+    } else {
+      stopMic();
+    }
+  };
+  recognition.onend = () => {
+    if (!micContinuous) { micOn = false; updateMicUI(); }
+    // Si continu, la relance est gérée dans onresult/onerror
+  };
 }
-function toggleMic() { initMic(); if(!recognition){coachMsg('Micro non dispo. Utilise Chrome.');return;} micOn?stopMic():startMic(); }
-function startMic() { synth?.cancel();speakQueue=[];micOn=true;try{recognition.start();}catch(e){stopMic();} }
-function stopMic() { micOn=false;try{recognition?.stop();}catch(e){}updateMicUI();document.getElementById('chat-input').placeholder='Parle ou ecris au coach...'; }
-function updateMicUI() { const b=document.getElementById('btn-mic');if(!b)return;b.textContent=micOn?'🔴':'🎤';b.style.background=micOn?'var(--warn)':'var(--s2)'; }
+
+function toggleMic() {
+  initMic();
+  if (!recognition) { coachMsg('Micro non dispo sur ce navigateur. Utilise Chrome.'); return; }
+  if (micContinuous) {
+    // Désactive le mode continu
+    micContinuous = false;
+    stopMic();
+    coachMsg('Micro désactivé.');
+  } else {
+    // Active le mode continu
+    micContinuous = true;
+    startMic();
+    coachMsg('Micro activé en continu ! Parle-moi quand tu veux, je t\'écoute.');
+  }
+}
+
+function startMic() {
+  synth?.cancel(); speakQueue = [];
+  micOn = true;
+  try { recognition.start(); } catch(e) { stopMic(); }
+}
+
+function stopMic() {
+  micContinuous = false;
+  micOn = false;
+  try { recognition?.stop(); } catch(e) {}
+  updateMicUI();
+  document.getElementById('chat-input').placeholder = 'Parle ou écris au coach...';
+}
+
+function updateMicUI() {
+  const b = document.getElementById('btn-mic'); if (!b) return;
+  b.textContent = micContinuous ? '🔴' : '🎤';
+  b.style.background = micContinuous ? 'var(--warn)' : 'var(--s2)';
+  b.title = micContinuous ? 'Micro actif — clique pour désactiver' : 'Activer le micro continu';
+}
 
 function coachMsg(txt) {
   const c=document.getElementById('chat-msgs'),t=document.getElementById('typing');
@@ -1643,16 +1789,32 @@ function sendChat() {
 function openEnd() {
   stopTimer(); clearInterval(anlsInt); anlsInt = null;
   if (demoId) { cancelAnimationFrame(demoId); demoId = null; }
-  const dur = Math.round((Date.now() - sesStart) / 60000) || 22;
-  const kcal = Math.round(totalReps*.5 + curExo*40 + dur*2);
-  const score = Math.max(40, Math.min(99, Math.round(85 - totalErrs*3 + curExo*5)));
+  if (window._transTimer) { clearInterval(window._transTimer); }
+
+  const dur = Math.max(1, Math.round((Date.now() - sesStart) / 60000));
+  // Calcul kcal selon profil (MET * poids * durée)
+  const metFactor = {perte:7, muscle:6, cardio:8, forme:5}[U.obj||'perte'] || 6;
+  const kcal = Math.round((metFactor * (U.poids||75) * dur) / 60);
+  const score = Math.max(40, Math.min(99, Math.round(80 - totalErrs*2 + Math.min(curExo,6)*3)));
+  const exosFinis = Math.min(curExo, curExos.length);
+  const totalExos = curExos.length;
+
   document.getElementById('em-reps').textContent = totalReps;
   document.getElementById('em-kcal').textContent = kcal;
   document.getElementById('em-dur').textContent = dur + 'min';
   setTimeout(() => document.getElementById('em-score-fill').style.width = score + '%', 200);
   document.getElementById('em-score-val').textContent = score + '/100';
+
+  // Message vocal de fin
+  const msgs = [
+    'Séance terminée ! ' + dur + ' minutes, ' + kcal + ' calories brûlées. Tu assures !',
+    'Voilà, c\'est fini ! ' + totalReps + ' reps, ' + kcal + ' kcal. Belle séance !',
+    'Excellent ! ' + dur + ' min de travail, ' + kcal + ' kcal. Tu t\'es donné à fond !',
+  ];
+  speak(msgs[Math.floor(Math.random()*msgs.length)]);
+
   document.getElementById('end-modal').classList.add('open');
-  curSession = {dur, kcal, score, reps:totalReps, errs:totalErrs};
+  curSession = {dur, kcal, score, reps:totalReps, errs:totalErrs, exosFinis, totalExos};
 }
 function closeEnd() { document.getElementById('end-modal').classList.remove('open'); }
 function saveEnd() {
