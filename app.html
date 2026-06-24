@@ -1158,38 +1158,94 @@ const REP_CFG = {
   'Dips sur chaise':{type:'elbow',down:75,up:150}, 'Pont fessier':{type:'hip',down:130,up:170},
 };
 
+function getBestAngle(lm, type) {
+  // Prend le meilleur angle entre gauche et droite (le plus visible)
+  if (type === 'knee') {
+    const L = (lm[23]?.visibility||0) + (lm[25]?.visibility||0) + (lm[27]?.visibility||0);
+    const R = (lm[24]?.visibility||0) + (lm[26]?.visibility||0) + (lm[28]?.visibility||0);
+    if (L >= R && L > 1.2) return calcAngle(lm[23],lm[25],lm[27]);
+    if (R > 1.2) return calcAngle(lm[24],lm[26],lm[28]);
+  }
+  if (type === 'elbow') {
+    const L = (lm[11]?.visibility||0) + (lm[13]?.visibility||0) + (lm[15]?.visibility||0);
+    const R = (lm[12]?.visibility||0) + (lm[14]?.visibility||0) + (lm[16]?.visibility||0);
+    if (L >= R && L > 1.2) return calcAngle(lm[11],lm[13],lm[15]);
+    if (R > 1.2) return calcAngle(lm[12],lm[14],lm[16]);
+  }
+  if (type === 'hip') {
+    const L = (lm[11]?.visibility||0) + (lm[23]?.visibility||0) + (lm[25]?.visibility||0);
+    const R = (lm[12]?.visibility||0) + (lm[24]?.visibility||0) + (lm[26]?.visibility||0);
+    if (L >= R && L > 1.2) return calcAngle(lm[11],lm[23],lm[25]);
+    if (R > 1.2) return calcAngle(lm[12],lm[24],lm[26]);
+  }
+  return null;
+}
+
 function analyzePosture(lm) {
   if (!lm || lm.length < 33) return [];
-  const errJ = [], exoName = curExos[curExo]?.n || '', cfg = REP_CFG[exoName] || {type:'knee',down:100,up:155};
-  let angle = null;
-  if (cfg.type === 'knee' && lm[23]?.visibility>.4 && lm[25]?.visibility>.4 && lm[27]?.visibility>.4) {
-    angle = calcAngle(lm[23],lm[25],lm[27]);
-    document.getElementById('av-knee').textContent = angle + '°';
-    if (lm[11]?.visibility>.4 && lm[23]?.visibility>.4 && lm[25]?.visibility>.4)
-      document.getElementById('av-hip').textContent = calcAngle(lm[11],lm[23],lm[25]) + '°';
-  } else if (cfg.type === 'elbow' && lm[12]?.visibility>.4 && lm[14]?.visibility>.4 && lm[16]?.visibility>.4) {
-    angle = calcAngle(lm[12],lm[14],lm[16]);
-    document.getElementById('av-knee').textContent = angle + '°';
-  } else if (cfg.type === 'hip' && lm[12]?.visibility>.4 && lm[24]?.visibility>.4 && lm[26]?.visibility>.4) {
-    angle = calcAngle(lm[12],lm[24],lm[26]);
-    document.getElementById('av-knee').textContent = angle + '°';
-  }
-  if (lm[11]?.visibility>.4 && lm[23]?.visibility>.4) {
-    const dx = lm[11].x-lm[23].x, dy = lm[11].y-lm[23].y;
-    const backLean = Math.round(Math.abs(Math.atan2(dx,Math.abs(dy))*180/Math.PI));
-    document.getElementById('av-back').textContent = backLean + '°';
-    if (backLean > 30) errJ.push(11,12,23,24);
-  }
+  const errJ = [];
+  const exoName = curExos[curExo]?.n || '';
+  const cfg = REP_CFG[exoName] || {type:'knee', down:100, up:155};
+
+  // Calcul de l'angle principal (prend le meilleur côté visible)
+  const angle = getBestAngle(lm, cfg.type);
+
+  // Affiche l'angle
   if (angle !== null) {
-    repBuffer.push(angle); if (repBuffer.length > 4) repBuffer.shift();
-    const sm = Math.round(repBuffer.reduce((a,b) => a+b,0)/repBuffer.length);
-    if (sm < cfg.down && repPhase === 'up') repPhase = 'down';
-    if (sm > cfg.up && repPhase === 'down') { repPhase = 'up'; reps++; totalReps++; document.getElementById('rep-count').textContent = reps; checkRep(); }
+    document.getElementById('av-knee').textContent = angle + '°';
   }
+
+  // Angle hanches pour info
+  const hipA = getBestAngle(lm, 'hip');
+  if (hipA !== null) document.getElementById('av-hip').textContent = hipA + '°';
+
+  // Angle dos (verticalité du torse)
+  const bestShoulderVis = (lm[11]?.visibility||0) > (lm[12]?.visibility||0) ? lm[11] : lm[12];
+  const bestHipVis = (lm[23]?.visibility||0) > (lm[24]?.visibility||0) ? lm[23] : lm[24];
+  if (bestShoulderVis.visibility > .4 && bestHipVis.visibility > .4) {
+    const dx = bestShoulderVis.x - bestHipVis.x;
+    const dy = bestShoulderVis.y - bestHipVis.y;
+    const backLean = Math.round(Math.abs(Math.atan2(dx, Math.abs(dy)) * 180 / Math.PI));
+    document.getElementById('av-back').textContent = backLean + '°';
+    if (backLean > 30 && cfg.type === 'knee') errJ.push(11,12,23,24);
+  }
+
+  // ── COMPTAGE REPS avec lissage ──
+  if (angle !== null) {
+    repBuffer.push(angle);
+    if (repBuffer.length > 5) repBuffer.shift();
+    // Lissage médian pour éviter les faux positifs
+    const sorted = [...repBuffer].sort((a,b)=>a-b);
+    const sm = sorted[Math.floor(sorted.length/2)];
+
+    if (sm <= cfg.down && repPhase === 'up') {
+      repPhase = 'down';
+    }
+    if (sm >= cfg.up && repPhase === 'down') {
+      repPhase = 'up';
+      reps++; totalReps++;
+      document.getElementById('rep-count').textContent = reps;
+      // Flash visuel sur le compteur
+      const rc = document.getElementById('rep-count');
+      rc.style.color = '#fff';
+      rc.style.transform = 'scale(1.4)';
+      setTimeout(() => { rc.style.color='var(--ac)'; rc.style.transform='scale(1)'; }, 300);
+      checkRep();
+    }
+  }
+
+  // Badges erreur
   document.getElementById('ab-knee').className = 'angle-badge' + (errJ.some(j=>[25,26,13,14].includes(j))?' err':'');
   document.getElementById('ab-back').className = 'angle-badge' + (errJ.some(j=>[11,12,23,24].includes(j))?' err':'');
-  if (errJ.length > 0 && !errState) { phaseSwitchCount++; if (phaseSwitchCount > 15) { phaseSwitchCount=0; triggerError(); } }
-  else if (errJ.length === 0) { phaseSwitchCount = Math.max(0, phaseSwitchCount-1); if (errState && phaseSwitchCount === 0) clearError(); }
+
+  // Erreur posture
+  if (errJ.length > 0 && !errState) {
+    phaseSwitchCount++;
+    if (phaseSwitchCount > 15) { phaseSwitchCount=0; triggerError(); }
+  } else if (errJ.length === 0) {
+    phaseSwitchCount = Math.max(0, phaseSwitchCount-1);
+    if (errState && phaseSwitchCount === 0) clearError();
+  }
   return errJ;
 }
 
@@ -1305,55 +1361,446 @@ function hidePoseScreen() {
 }
 
 function getPoseSVG(name) {
-  // SVG animé générique (squat par défaut, looks good pour tous les exos)
-  return `<svg viewBox="0 0 200 300" style="width:180px;height:270px">
-    <defs><filter id="g"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-    <line x1="20" y1="270" x2="180" y2="270" stroke="rgba(200,245,90,.15)" stroke-width="2"/>
-    <circle filter="url(#g)" r="13" cx="100" cy="40" fill="#c8f55a">
-      <animate attributeName="cy" values="40;55;40" dur="2s" repeatCount="indefinite"/>
-    </circle>
-    <line filter="url(#g)" stroke="#c8f55a" stroke-width="3" stroke-linecap="round" fill="none" x1="100" y1="53" x2="100" y2="140">
-      <animate attributeName="y2" values="140;158;140" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="y1" values="53;68;53" dur="2s" repeatCount="indefinite"/>
-    </line>
-    <line filter="url(#g)" stroke="#c8f55a" stroke-width="3" stroke-linecap="round" fill="none" x1="70" y1="80" x2="130" y2="80">
-      <animate attributeName="y1" values="80;95;80" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="y2" values="80;95;80" dur="2s" repeatCount="indefinite"/>
-    </line>
-    <line filter="url(#g)" stroke="#c8f55a" stroke-width="3" stroke-linecap="round" fill="none" x1="70" y1="80" x2="52" y2="130">
-      <animate attributeName="y1" values="80;95;80" dur="2s" repeatCount="indefinite"/>
-    </line>
-    <line filter="url(#g)" stroke="#c8f55a" stroke-width="3" stroke-linecap="round" fill="none" x1="130" y1="80" x2="148" y2="130">
-      <animate attributeName="y1" values="80;95;80" dur="2s" repeatCount="indefinite"/>
-    </line>
-    <line filter="url(#g)" stroke="#c8f55a" stroke-width="3" stroke-linecap="round" fill="none" x1="80" y1="140" x2="65" y2="205">
-      <animate attributeName="y1" values="140;158;140" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="x2" values="65;55;65" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="y2" values="205;218;205" dur="2s" repeatCount="indefinite"/>
-    </line>
-    <line filter="url(#g)" stroke="#c8f55a" stroke-width="3" stroke-linecap="round" fill="none" x1="120" y1="140" x2="135" y2="205">
-      <animate attributeName="y1" values="140;158;140" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="x2" values="135;145;135" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="y2" values="205;218;205" dur="2s" repeatCount="indefinite"/>
-    </line>
-    <line filter="url(#g)" stroke="#c8f55a" stroke-width="3" stroke-linecap="round" fill="none" x1="65" y1="205" x2="60" y2="265">
-      <animate attributeName="y1" values="205;218;205" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="x1" values="65;55;65" dur="2s" repeatCount="indefinite"/>
-    </line>
-    <line filter="url(#g)" stroke="#c8f55a" stroke-width="3" stroke-linecap="round" fill="none" x1="135" y1="205" x2="140" y2="265">
-      <animate attributeName="y1" values="205;218;205" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="x1" values="135;145;135" dur="2s" repeatCount="indefinite"/>
-    </line>
-    <circle filter="url(#g)" r="5" cx="65" cy="205" fill="#c8f55a">
-      <animate attributeName="cy" values="205;218;205" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="cx" values="65;55;65" dur="2s" repeatCount="indefinite"/>
-    </circle>
-    <circle filter="url(#g)" r="5" cx="135" cy="205" fill="#c8f55a">
-      <animate attributeName="cy" values="205;218;205" dur="2s" repeatCount="indefinite"/>
-      <animate attributeName="cx" values="135;145;135" dur="2s" repeatCount="indefinite"/>
-    </circle>
-    <text x="30" y="290" fill="rgba(200,245,90,.6)" font-size="11" font-family="monospace">Imite le mouvement</text>
-  </svg>`;
+  const SVGs = {
+    // SQUAT
+    'Squat classique': coachSVG_squat(),
+    'Squat saute': coachSVG_squat(),
+    'Squat sumo': coachSVG_sumo(),
+    // POMPES
+    'Pompes classiques': coachSVG_pushup(),
+    'Pompes larges': coachSVG_pushup(),
+    'Pompes serrees': coachSVG_pushup(),
+    // FENTES
+    'Fentes avant': coachSVG_lunge(),
+    'Fentes laterales': coachSVG_lunge(),
+    // GAINAGE
+    'Gainage planche': coachSVG_plank(),
+    'Gainage lateral': coachSVG_plank(),
+    // SOL
+    'Crunch classique': coachSVG_crunch(),
+    'Pont fessier': coachSVG_bridge(),
+    'Superman': coachSVG_superman(),
+    // DEBOUT
+    'Curl biceps': coachSVG_curl(),
+    'Jumping jacks': coachSVG_jj(),
+  };
+  return SVGs[name] || coachSVG_squat();
+}
+
+function coachSVG_squat() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+  <div style="font-size:12px;color:var(--ac);font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em">Coach Alex démo</div>
+  <svg viewBox="0 0 220 320" style="width:200px;height:290px">
+  <defs>
+    <filter id="gl"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="bg" cx="50%" cy="80%"><stop offset="0%" stop-color="rgba(200,245,90,.1)"/><stop offset="100%" stop-color="transparent"/></radialGradient>
+  </defs>
+  <ellipse cx="110" cy="295" rx="60" ry="10" fill="url(#bg)"/>
+  <!-- Sol -->
+  <line x1="30" y1="285" x2="190" y2="285" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Tête -->
+  <circle filter="url(#gl)" cx="110" cy="42" r="18" fill="none" stroke="#c8f55a" stroke-width="3">
+    <animate attributeName="cy" values="42;58;42" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Yeux -->
+  <circle cx="104" cy="40" r="2.5" fill="#c8f55a"><animate attributeName="cy" values="40;56;40" dur="1.8s" repeatCount="indefinite"/></circle>
+  <circle cx="116" cy="40" r="2.5" fill="#c8f55a"><animate attributeName="cy" values="40;56;40" dur="1.8s" repeatCount="indefinite"/></circle>
+  <!-- Torse -->
+  <line filter="url(#gl)" x1="110" y1="60" x2="110" y2="155" stroke="#c8f55a" stroke-width="4" stroke-linecap="round">
+    <animate attributeName="y2" values="155;172;155" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="y1" values="60;76;60" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Épaules -->
+  <line filter="url(#gl)" x1="75" y1="85" x2="145" y2="85" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="85;101;85" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="85;101;85" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras G levé (coach montre) -->
+  <line filter="url(#gl)" x1="75" y1="85" x2="50" y2="140" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="85;101;85" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="140;155;140" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="50;55;50" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras D levé -->
+  <line filter="url(#gl)" x1="145" y1="85" x2="170" y2="140" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="85;101;85" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="140;155;140" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="170;165;170" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Hanches -->
+  <line filter="url(#gl)" x1="88" y1="155" x2="132" y2="155" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="155;172;155" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="155;172;155" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Cuisse G -->
+  <line filter="url(#gl)" x1="88" y1="155" x2="72" y2="222" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="155;172;155" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="72;58;72" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="222;238;222" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Cuisse D -->
+  <line filter="url(#gl)" x1="132" y1="155" x2="148" y2="222" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="155;172;155" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="148;162;148" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="222;238;222" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambe G bas -->
+  <line filter="url(#gl)" x1="72" y1="222" x2="68" y2="282" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="222;238;222" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="72;58;72" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambe D bas -->
+  <line filter="url(#gl)" x1="148" y1="222" x2="152" y2="282" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="222;238;222" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="148;162;148" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Genoux joints -->
+  <circle filter="url(#gl)" cx="72" cy="222" r="6" fill="#c8f55a">
+    <animate attributeName="cy" values="222;238;222" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="72;58;72" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle filter="url(#gl)" cx="148" cy="222" r="6" fill="#c8f55a">
+    <animate attributeName="cy" values="222;238;222" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="148;162;148" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Angle genou -->
+  <text fill="rgba(200,245,90,.9)" font-size="12" font-family="monospace" font-weight="bold">
+    <animate attributeName="x" values="26;18;26" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="y" values="232;244;232" dur="1.8s" repeatCount="indefinite"/>
+    <tspan>90°</tspan>
+  </text>
+  <!-- Label -->
+  <text x="60" y="308" fill="rgba(200,245,90,.6)" font-size="11" font-family="monospace">Descends à 90°</text>
+  </svg>
+  </div>`;
+}
+
+function coachSVG_pushup() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+  <div style="font-size:12px;color:var(--ac);font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em">Coach Alex démo</div>
+  <svg viewBox="0 0 280 200" style="width:260px;height:185px">
+  <defs><filter id="gl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <line x1="20" y1="175" x2="260" y2="175" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Tête -->
+  <circle filter="url(#gl)" cx="235" cy="85" r="16" fill="none" stroke="#c8f55a" stroke-width="3">
+    <animate attributeName="cy" values="85;110;85" dur="1.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="229" cy="83" r="2" fill="#c8f55a"><animate attributeName="cy" values="83;108;83" dur="1.6s" repeatCount="indefinite"/></circle>
+  <circle cx="239" cy="83" r="2" fill="#c8f55a"><animate attributeName="cy" values="83;108;83" dur="1.6s" repeatCount="indefinite"/></circle>
+  <!-- Corps horizontal -->
+  <line filter="url(#gl)" x1="219" y1="85" x2="80" y2="108" stroke="#c8f55a" stroke-width="4" stroke-linecap="round">
+    <animate attributeName="y1" values="85;110;85" dur="1.6s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="108;118;108" dur="1.6s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras G -->
+  <line filter="url(#gl)" x1="219" y1="85" x2="196" y2="148" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="85;110;85" dur="1.6s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="148;168;148" dur="1.6s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="196" y1="148" x2="178" y2="172" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="148;168;148" dur="1.6s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras D -->
+  <line filter="url(#gl)" x1="160" y1="112" x2="145" y2="158" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="112;118;112" dur="1.6s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="158;168;158" dur="1.6s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="145" y1="158" x2="135" y2="172" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="158;168;158" dur="1.6s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes -->
+  <line filter="url(#gl)" x1="80" y1="108" x2="42" y2="115" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="108;118;108" dur="1.6s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="42" y1="115" x2="32" y2="172" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <!-- Joints coudes -->
+  <circle filter="url(#gl)" cx="196" cy="148" r="5" fill="#c8f55a"><animate attributeName="cy" values="148;168;148" dur="1.6s" repeatCount="indefinite"/></circle>
+  <circle filter="url(#gl)" cx="145" cy="158" r="5" fill="#c8f55a"><animate attributeName="cy" values="158;168;158" dur="1.6s" repeatCount="indefinite"/></circle>
+  <text x="70" y="192" fill="rgba(200,245,90,.6)" font-size="11" font-family="monospace">Coudes à 45° · Descends bas</text>
+  </svg>
+  </div>`;
+}
+
+function coachSVG_lunge() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+  <div style="font-size:12px;color:var(--ac);font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em">Coach Alex démo</div>
+  <svg viewBox="0 0 220 320" style="width:200px;height:290px">
+  <defs><filter id="gl"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <line x1="20" y1="285" x2="200" y2="285" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Tête -->
+  <circle filter="url(#gl)" cx="110" cy="42" r="17" fill="none" stroke="#c8f55a" stroke-width="3">
+    <animate attributeName="cy" values="42;52;42" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="104" cy="40" r="2.5" fill="#c8f55a"><animate attributeName="cy" values="40;50;40" dur="2s" repeatCount="indefinite"/></circle>
+  <circle cx="116" cy="40" r="2.5" fill="#c8f55a"><animate attributeName="cy" values="40;50;40" dur="2s" repeatCount="indefinite"/></circle>
+  <!-- Torse -->
+  <line filter="url(#gl)" x1="110" y1="59" x2="110" y2="155" stroke="#c8f55a" stroke-width="4" stroke-linecap="round">
+    <animate attributeName="y1" values="59;69;59" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="155;162;155" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Épaules -->
+  <line filter="url(#gl)" x1="78" y1="85" x2="142" y2="85" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="85;95;85" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="85;95;85" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras -->
+  <line filter="url(#gl)" x1="78" y1="85" x2="58" y2="140" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"><animate attributeName="y1" values="85;95;85" dur="2s" repeatCount="indefinite"/></line>
+  <line filter="url(#gl)" x1="142" y1="85" x2="162" y2="140" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"><animate attributeName="y1" values="85;95;85" dur="2s" repeatCount="indefinite"/></line>
+  <!-- Hanche -->
+  <line filter="url(#gl)" x1="90" y1="155" x2="130" y2="155" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="155;162;155" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="155;162;155" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambe avant (genou plié) -->
+  <line filter="url(#gl)" x1="130" y1="155" x2="152" y2="220" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="155;162;155" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="220;226;220" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="152" y1="220" x2="158" y2="282" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="220;226;220" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambe arrière -->
+  <line filter="url(#gl)" x1="90" y1="155" x2="68" y2="210" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="155;162;155" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="210;215;210" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="68" y1="210" x2="58" y2="282" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="210;215;210" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Genou avant -->
+  <circle filter="url(#gl)" cx="152" cy="220" r="6" fill="#c8f55a">
+    <animate attributeName="cy" values="220;226;220" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <text x="110" y="305" fill="rgba(200,245,90,.6)" font-size="11" font-family="monospace" text-anchor="middle">Genou à 90°</text>
+  </svg>
+  </div>`;
+}
+
+function coachSVG_plank() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+  <div style="font-size:12px;color:var(--ac);font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em">Coach Alex démo</div>
+  <svg viewBox="0 0 300 160" style="width:280px;height:148px">
+  <defs><filter id="gl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <line x1="20" y1="140" x2="280" y2="140" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Corps rigide avec légère respiration -->
+  <circle filter="url(#gl)" cx="258" cy="72" r="15" fill="none" stroke="#c8f55a" stroke-width="3">
+    <animate attributeName="cy" values="72;70;72" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="253" cy="70" r="2" fill="#c8f55a"><animate attributeName="cy" values="70;68;70" dur="3s" repeatCount="indefinite"/></circle>
+  <circle cx="263" cy="70" r="2" fill="#c8f55a"><animate attributeName="cy" values="70;68;70" dur="3s" repeatCount="indefinite"/></circle>
+  <!-- Corps horizontal rigide -->
+  <line filter="url(#gl)" x1="243" y1="72" x2="52" y2="90" stroke="#c8f55a" stroke-width="5" stroke-linecap="round">
+    <animate attributeName="y1" values="72;70;72" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="90;88;90" dur="3s" repeatCount="indefinite"/>
+  </line>
+  <!-- Appui coudes -->
+  <line filter="url(#gl)" x1="200" y1="78" x2="185" y2="138" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="78;76;78" dur="3s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="185" y1="138" x2="168" y2="138" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <!-- Coude G -->
+  <line filter="url(#gl)" x1="155" y1="82" x2="140" y2="138" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="82;80;82" dur="3s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="140" y1="138" x2="120" y2="138" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <!-- Jambes -->
+  <line filter="url(#gl)" x1="52" y1="90" x2="32" y2="98" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="90;88;90" dur="3s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="32" y1="98" x2="25" y2="138" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <!-- Joints coudes -->
+  <circle filter="url(#gl)" cx="185" cy="138" r="4" fill="#c8f55a"/>
+  <circle filter="url(#gl)" cx="140" cy="138" r="4" fill="#c8f55a"/>
+  <!-- Flèche rigidité -->
+  <text x="80" y="155" fill="rgba(200,245,90,.6)" font-size="11" font-family="monospace">Corps rigide — ne lâche pas !</text>
+  </svg>
+  </div>`;
+}
+
+function coachSVG_crunch() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+  <div style="font-size:12px;color:var(--ac);font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em">Coach Alex démo</div>
+  <svg viewBox="0 0 280 180" style="width:260px;height:165px">
+  <defs><filter id="gl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <line x1="20" y1="160" x2="260" y2="160" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Tête qui monte -->
+  <circle filter="url(#gl)" cx="220" cy="75" r="16" fill="none" stroke="#c8f55a" stroke-width="3">
+    <animate attributeName="cy" values="75;50;75" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="214" cy="73" r="2" fill="#c8f55a"><animate attributeName="cy" values="73;48;73" dur="2s" repeatCount="indefinite"/></circle>
+  <circle cx="226" cy="73" r="2" fill="#c8f55a"><animate attributeName="cy" values="73;48;73" dur="2s" repeatCount="indefinite"/></circle>
+  <!-- Torse -->
+  <line filter="url(#gl)" x1="204" y1="75" x2="110" y2="108" stroke="#c8f55a" stroke-width="4" stroke-linecap="round">
+    <animate attributeName="y1" values="75;52;75" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="x1" values="204;198;204" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="108;112;108" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes pliées immobiles -->
+  <line filter="url(#gl)" x1="110" y1="108" x2="75" y2="148" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round"/>
+  <line filter="url(#gl)" x1="75" y1="148" x2="45" y2="158" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <line filter="url(#gl)" x1="110" y1="108" x2="80" y2="152" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round"/>
+  <line filter="url(#gl)" x1="80" y1="152" x2="50" y2="158" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <!-- Bras derrière tête -->
+  <line filter="url(#gl)" x1="204" y1="75" x2="222" y2="60" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="75;52;75" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="60;38;60" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <circle filter="url(#gl)" cx="75" cy="148" r="5" fill="#c8f55a"/>
+  <text x="60" y="175" fill="rgba(200,245,90,.6)" font-size="11" font-family="monospace">Épaules, pas le cou !</text>
+  </svg>
+  </div>`;
+}
+
+function coachSVG_bridge() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+  <div style="font-size:12px;color:var(--ac);font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em">Coach Alex démo</div>
+  <svg viewBox="0 0 280 180" style="width:260px;height:165px">
+  <defs><filter id="gl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <line x1="20" y1="160" x2="260" y2="160" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <!-- Tête immobile à gauche -->
+  <circle filter="url(#gl)" cx="238" cy="118" r="15" fill="none" stroke="#c8f55a" stroke-width="3"/>
+  <circle cx="232" cy="116" r="2" fill="#c8f55a"/>
+  <circle cx="244" cy="116" r="2" fill="#c8f55a"/>
+  <!-- Corps en pont qui monte -->
+  <line filter="url(#gl)" x1="223" y1="118" x2="130" y2="82" stroke="#c8f55a" stroke-width="4" stroke-linecap="round">
+    <animate attributeName="y2" values="82;58;82" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Hanches -->
+  <circle filter="url(#gl)" cx="130" cy="82" r="7" fill="#c8f55a">
+    <animate attributeName="cy" values="82;58;82" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Cuisses -->
+  <line filter="url(#gl)" x1="130" y1="82" x2="80" y2="128" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="82;58;82" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="80" y1="128" x2="62" y2="158" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <line filter="url(#gl)" x1="130" y1="82" x2="100" y2="132" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y1" values="82;58;82" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="100" y1="132" x2="82" y2="158" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <!-- Épaules au sol -->
+  <line filter="url(#gl)" x1="223" y1="118" x2="195" y2="155" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <!-- Flèche hanches -->
+  <text x="90" y="48" fill="rgba(200,245,90,.8)" font-size="16" font-family="monospace">↑</text>
+  <text x="50" y="175" fill="rgba(200,245,90,.6)" font-size="11" font-family="monospace">Serre les fessiers fort !</text>
+  </svg>
+  </div>`;
+}
+
+function coachSVG_superman() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+  <div style="font-size:12px;color:var(--ac);font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em">Coach Alex démo</div>
+  <svg viewBox="0 0 280 160" style="width:260px;height:148px">
+  <defs><filter id="gl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <line x1="20" y1="140" x2="260" y2="140" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle filter="url(#gl)" cx="238" cy="88" r="14" fill="none" stroke="#c8f55a" stroke-width="3">
+    <animate attributeName="cy" values="88;75;88" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <line filter="url(#gl)" x1="224" y1="88" x2="80" y2="95" stroke="#c8f55a" stroke-width="4" stroke-linecap="round">
+    <animate attributeName="y1" values="88;75;88" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="95;82;95" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bras tendus vers le haut -->
+  <line filter="url(#gl)" x1="224" y1="88" x2="248" y2="65" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="88;75;88" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="65;42;65" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="195" y1="90" x2="218" y2="65" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="y1" values="90;78;90" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="65;43;65" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes levées -->
+  <line filter="url(#gl)" x1="80" y1="95" x2="42" y2="82" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y2" values="82;62;82" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y1" values="95;82;95" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="80" y1="95" x2="48" y2="88" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y2" values="88;68;88" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="y1" values="95;82;95" dur="2s" repeatCount="indefinite"/>
+  </line>
+  <text x="60" y="155" fill="rgba(200,245,90,.6)" font-size="11" font-family="monospace">Bras ET jambes ensemble</text>
+  </svg>
+  </div>`;
+}
+
+function coachSVG_curl() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+  <div style="font-size:12px;color:var(--ac);font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em">Coach Alex démo</div>
+  <svg viewBox="0 0 220 320" style="width:200px;height:290px">
+  <defs><filter id="gl"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <line x1="20" y1="285" x2="200" y2="285" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle filter="url(#gl)" cx="110" cy="42" r="17" fill="none" stroke="#c8f55a" stroke-width="3"/>
+  <circle cx="104" cy="40" r="2.5" fill="#c8f55a"/>
+  <circle cx="116" cy="40" r="2.5" fill="#c8f55a"/>
+  <line filter="url(#gl)" x1="110" y1="59" x2="110" y2="155" stroke="#c8f55a" stroke-width="4" stroke-linecap="round"/>
+  <line filter="url(#gl)" x1="78" y1="85" x2="142" y2="85" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Bras droit fixe -->
+  <line filter="url(#gl)" x1="142" y1="85" x2="158" y2="155" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <line filter="url(#gl)" x1="158" y1="155" x2="163" y2="218" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <!-- Bras gauche curl -->
+  <line filter="url(#gl)" x1="78" y1="85" x2="62" y2="152" stroke="#c8f55a" stroke-width="3" stroke-linecap="round"/>
+  <line filter="url(#gl)" x1="62" y1="152" x2="72" y2="208" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="y2" values="208;138;208" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="72;88;72" dur="1.8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Bouteille -->
+  <circle filter="url(#gl)" cx="72" cy="212" r="7" fill="#c8f55a" opacity=".8">
+    <animate attributeName="cy" values="212;142;212" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="cx" values="72;88;72" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle filter="url(#gl)" cx="62" cy="152" r="5" fill="#c8f55a"/>
+  <!-- Jambes -->
+  <line filter="url(#gl)" x1="98" y1="155" x2="85" y2="282" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round"/>
+  <line filter="url(#gl)" x1="122" y1="155" x2="135" y2="282" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round"/>
+  <line filter="url(#gl)" x1="98" y1="155" x2="122" y2="155" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round"/>
+  <text x="55" y="305" fill="rgba(200,245,90,.6)" font-size="11" font-family="monospace">Coude fixe !</text>
+  </svg>
+  </div>`;
+}
+
+function coachSVG_sumo() {
+  return coachSVG_squat(); // Proche du squat
+}
+
+function coachSVG_jj() {
+  return `<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+  <div style="font-size:12px;color:var(--ac);font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em">Coach Alex démo</div>
+  <svg viewBox="0 0 220 320" style="width:200px;height:290px">
+  <defs><filter id="gl"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <line x1="20" y1="285" x2="200" y2="285" stroke="rgba(200,245,90,.2)" stroke-width="2"/>
+  <circle filter="url(#gl)" cx="110" cy="42" r="17" fill="none" stroke="#c8f55a" stroke-width="3"/>
+  <circle cx="104" cy="40" r="2.5" fill="#c8f55a"/>
+  <circle cx="116" cy="40" r="2.5" fill="#c8f55a"/>
+  <line filter="url(#gl)" x1="110" y1="59" x2="110" y2="152" stroke="#c8f55a" stroke-width="4" stroke-linecap="round"/>
+  <line filter="url(#gl)" x1="80" y1="85" x2="140" y2="85" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Bras qui s'écartent/se lèvent -->
+  <line filter="url(#gl)" x1="80" y1="85" x2="42" y2="115" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="x2" values="42;25;42" dur=".8s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="115;70;115" dur=".8s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="140" y1="85" x2="178" y2="115" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="x2" values="178;195;178" dur=".8s" repeatCount="indefinite"/>
+    <animate attributeName="y2" values="115;70;115" dur=".8s" repeatCount="indefinite"/>
+  </line>
+  <!-- Jambes qui s'écartent -->
+  <line filter="url(#gl)" x1="98" y1="152" x2="72" y2="240" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="x2" values="72;48;72" dur=".8s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="72" y1="240" x2="62" y2="282" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="x1" values="72;48;72" dur=".8s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="62;38;62" dur=".8s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="122" y1="152" x2="148" y2="240" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round">
+    <animate attributeName="x2" values="148;172;148" dur=".8s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="148" y1="240" x2="158" y2="282" stroke="#c8f55a" stroke-width="3" stroke-linecap="round">
+    <animate attributeName="x1" values="148;172;148" dur=".8s" repeatCount="indefinite"/>
+    <animate attributeName="x2" values="158;182;158" dur=".8s" repeatCount="indefinite"/>
+  </line>
+  <line filter="url(#gl)" x1="98" y1="152" x2="122" y2="152" stroke="#c8f55a" stroke-width="3.5" stroke-linecap="round"/>
+  <text x="55" y="305" fill="rgba(200,245,90,.6)" font-size="11" font-family="monospace">Rythme régulier !</text>
+  </svg>
+  </div>`;
 }
 
 // ══════════════════════════════════
